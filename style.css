@@ -940,3 +940,41 @@ body.game-body { padding-bottom: 40px; }
   text-align: center;
   padding: 20px 0;
 }
+
+/* ── PLAYER CARD BLOCKS ── */
+.player-card-block {
+  margin-bottom: 14px;
+}
+
+.player-card-block-name {
+  font-family: 'Special Elite', cursive;
+  font-size: 11px;
+  letter-spacing: .25em;
+  color: var(--sepia);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #2a1a08;
+}
+
+.player-card-block-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Zero-chip available cards get a green tint */
+.inv-card.zero-chip-card {
+  border-color: #2a3a1a;
+  background: #0f1509;
+}
+.inv-card.zero-chip-card.selectable:hover {
+  border-color: var(--green);
+  background: #141f0a;
+  box-shadow: 0 4px 14px rgba(44,95,30,.25);
+}
+.inv-card.zero-chip-card.selected {
+  border-color: var(--green);
+  background: #111a08;
+  box-shadow: 0 0 18px rgba(44,95,30,.35);
+}
