@@ -334,7 +334,7 @@ const BV = {
       const hand = gs.hands?.[BV.myId] || [];
       handRow.innerHTML = hand.length
         ? hand.map(lt => `<span class="hand-letter">${lt}</span>`).join('')
-        : '<span style="font-family:'Libre Baskerville',serif;font-style:italic;font-size:12px;color:var(--muted)">—</span>';
+        : '<span style="font-family:Courier Prime,monospace;font-style:italic;font-size:12px;color:var(--muted)">—</span>';
     }
 
     // Player cards table
@@ -621,7 +621,7 @@ const BV = {
     if (!tbody) return;
     const entries = gs.log || [];
     if (!entries.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;font-family:'Libre Baskerville',serif;font-style:italic;color:var(--muted);padding:12px">No investigations yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;font-style:italic;color:var(--muted);padding:12px">No investigations yet.</td></tr>';
       return;
     }
     tbody.innerHTML = [...entries].reverse().slice(0, 50).map(e => {
@@ -632,7 +632,7 @@ const BV = {
         <td>${e.n}</td>
         <td>${e.asker}</td>
         <td>${e.target}</td>
-        <td style="font-family:'Special Elite',cursive;letter-spacing:.1em">${e.card}</td>
+        <td style="letter-spacing:.1em">${e.card}</td>
         <td><div class="log-pips">${pips}</div></td>
       </tr>`;
     }).join('');
@@ -701,7 +701,7 @@ const BV = {
     // Step 2: card chosen, pick target
     if (BV._pendingCard && !BV._pendingTarget) {
       let html = `<div class="inv-step-label">Step 2 — Choose Who to Question</div>
-        <div class="inv-step-body">Card: <strong style="font-family:'Special Elite',cursive;letter-spacing:.15em;font-size:16px">${BV._pendingCardStr}</strong><br>Select a player to interrogate.</div>
+        <div class="inv-step-body">Card: <strong style="letter-spacing:.15em;font-size:16px">${BV._pendingCardStr}</strong><br>Select a player to interrogate.</div>
         <div class="target-list">`;
 
       gs.turnOrder.forEach(pid => {
