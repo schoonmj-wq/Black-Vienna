@@ -171,6 +171,10 @@ const BV = {
     const playerCards = {};
     playerIds.forEach(pid => { playerCards[pid] = []; });
 
+    // Store names in game state so all clients can look them up without async cache
+    const playerNames = {};
+    playerIds.forEach(pid => { playerNames[pid] = players[pid].name; });
+
     const gameState = {
       criminals,
       hands,
@@ -181,6 +185,7 @@ const BV = {
       chips: 40,
       invCount: 0,
       turnOrder: playerIds,
+      playerNames,      // { playerId: "Name" } — reliable across all clients
       currentTurnIdx: 0,
       phase: 'choose-card',
       pendingInv: null,
@@ -745,7 +750,11 @@ const BV = {
   },
 
   _playerName(gs, pid) {
-    return BV._cachedNames?.[pid] || pid?.substring(0,6) || '?';
+    // Use names stored in game state — always reliable, no async needed
+    if (gs?.playerNames?.[pid]) return gs.playerNames[pid];
+    // Fallback to cache (for lobby/pre-game calls)
+    if (BV._cachedNames?.[pid]) return BV._cachedNames[pid];
+    return pid?.substring(0,6) || '?';
   },
 };
 
