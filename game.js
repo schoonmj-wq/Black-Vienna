@@ -39,6 +39,7 @@ const BV = {
   _pendingAnswer: null,
   _pendingCard: null,
   _pendingCardStr: null,
+  _pendingTarget: null,
 
   // ── LOBBY ──────────────────────────────────────────────────────
 
@@ -283,10 +284,10 @@ const BV = {
       const target = BV._playerName(gs, gs.pendingInv?.targetId);
       const asker = BV._playerName(gs, gs.pendingInv?.askerId);
       turnEl.textContent = gs.pendingInv?.targetId === BV.myId
-        ? `${asker} is questioning you — answer privately.`
+        ? `${asker} is questioning you — go to Investigate tab to answer.`
         : `Waiting for ${target} to answer…`;
     } else if (myTurn && !isEliminated) {
-      turnEl.textContent = `Your turn — choose an investigation card.`;
+      turnEl.textContent = `Your turn — go to Investigate tab to choose a card.`;
     } else {
       const current = BV._playerName(gs, gs.turnOrder[gs.currentTurnIdx]);
       turnEl.textContent = `${current}'s turn to investigate.`;
@@ -294,127 +295,92 @@ const BV = {
 
     document.getElementById('chips-value').textContent = gs.chips;
 
-    const canSelect = myTurn && !isEliminated && gs.phase === 'choose-card';
-    BV._renderAvailableCards(gs, canSelect);
-    BV._renderPlayerCards(gs);
+    // Render View tab
+    BV._renderViewTab(gs);
 
-    // Action panel
-    if (canSelect) {
-      BV._renderActionIdle();
-    } else if (gs.phase === 'waiting-answer' && gs.pendingInv?.targetId !== BV.myId) {
-      BV._renderActionWaiting(gs);
-    } else if (gs.phase === 'choose-card' && !myTurn) {
-      const current = BV._playerName(gs, gs.turnOrder[gs.currentTurnIdx]);
-      document.getElementById('action-panel').innerHTML =
-        `<div class="waiting-msg">Waiting for <strong style="color:var(--ink)">${current}</strong> to choose a card…</div>`;
-    } else {
-      document.getElementById('action-panel').innerHTML = '';
-    }
+    // Render Log tab
+    BV._renderLogTab(gs);
 
-    BV._renderLog(gs);
-    BV._renderPlayers(gs);
+    // Re-render investigate tab if it's active
+    const invTab = document.getElementById('tab-investigate');
+    if (invTab?.classList.contains('active')) BV.renderInvestigateTab();
   },
 
-  // ── AVAILABLE CARDS (face-up + replayed 0-chip cards) ──────────
+  // ── VIEW TAB ───────────────────────────────────────────────────
 
-  _renderAvailableCards(gs, canSelect) {
-    const row = document.getElementById('inv-cards-row');
-    row.innerHTML = '';
+  _renderViewTab(gs) {
+    const myTurn = gs.turnOrder[gs.currentTurnIdx] === BV.myId;
 
-    // The 3 top-of-stack cards
-    gs.topCards.forEach((card, si) => {
-      const el = document.createElement('div');
-      if (!card) {
-        el.className = 'inv-card';
-        el.innerHTML = `<div class="inv-card-label">Stack ${si+1}</div><div class="inv-card-letters" style="color:#3a2410;font-size:12px">Empty</div>`;
-      } else {
-        el.className = 'inv-card' + (canSelect ? ' selectable' : '');
-        if (BV._pendingCard === `stack-${si}`) el.classList.add('selected');
-        el.innerHTML = `<div class="inv-card-label">Stack ${si+1}</div>
-          <div class="inv-card-letters">${card}</div>
-          <div class="inv-card-chips">${BV._ghostChips(3)}</div>`;
-        if (canSelect) el.onclick = () => BV._selectCard(`stack-${si}`, card, si, gs);
-      }
-      row.appendChild(el);
-    });
+    // Current turn cell
+    const turnCell = document.getElementById('view-current-turn');
+    if (turnCell) turnCell.textContent = BV._playerName(gs, gs.turnOrder[gs.currentTurnIdx]);
 
-    // 0-chip cards that can be replayed
-    const zeroCards = gs.zeroChipCards || [];
-    zeroCards.forEach((entry, zi) => {
-      const el = document.createElement('div');
-      el.className = 'inv-card zero-chip-card' + (canSelect ? ' selectable' : '');
-      if (BV._pendingCard === `zero-${zi}`) el.classList.add('selected');
-      el.innerHTML = `<div class="inv-card-label" style="color:#5a8040">0 chips — replayable</div>
-        <div class="inv-card-letters">${entry.card}</div>
-        <div class="inv-card-chips"><div class="chip-ghost"></div><div class="chip-ghost"></div><div class="chip-ghost"></div></div>`;
-      if (canSelect) el.onclick = () => BV._selectCard(`zero-${zi}`, entry.card, null, gs);
-      row.appendChild(el);
-    });
-  },
-
-  // ── PLAYER CARDS (cards with 1+ chips sitting in front of players) ──
-
-  _renderPlayerCards(gs) {
-    const section = document.getElementById('player-cards-section');
-    const playerCards = gs.playerCards || {};
-    const hasAny = Object.values(playerCards).some(cards => cards && cards.length > 0);
-
-    if (!hasAny) {
-      section.style.display = 'none';
-      return;
-    }
-    section.style.display = 'block';
-
-    const container = document.getElementById('player-cards-container');
-    container.innerHTML = '';
-
-    gs.turnOrder.forEach(pid => {
-      const cards = playerCards[pid] || [];
-      if (!cards.length) return;
-
-      const playerBlock = document.createElement('div');
-      playerBlock.className = 'player-card-block';
-
-      const nameEl = document.createElement('div');
-      nameEl.className = 'player-card-block-name';
-      nameEl.textContent = BV._playerName(gs, pid);
-      playerBlock.appendChild(nameEl);
-
-      const cardsRow = document.createElement('div');
-      cardsRow.className = 'player-card-block-cards';
-
-      cards.forEach(entry => {
-        const el = document.createElement('div');
-        el.className = 'inv-card used-card';
-        let chipsHtml = '';
-        for (let i = 0; i < 3; i++) {
-          chipsHtml += i < entry.count
-            ? '<div class="chip-dot"></div>'
-            : '<div class="chip-ghost"></div>';
-        }
-        el.innerHTML = `<div class="inv-card-letters">${entry.card}</div>
-          <div class="inv-card-chips">${chipsHtml}</div>`;
-        cardsRow.appendChild(el);
+    // Available cards
+    const availEl = document.getElementById('view-avail-cards');
+    if (availEl) {
+      let html = '';
+      gs.topCards.forEach(card => {
+        if (card) html += `<span class="avail-card-item">${card}</span>`;
       });
+      (gs.zeroChipCards || []).forEach(entry => {
+        html += `<span class="avail-card-item">${entry.card}<span class="avail-card-replay">replayable</span></span>`;
+      });
+      availEl.innerHTML = html || '<span style="color:var(--muted);font-size:12px">None</span>';
+    }
 
-      playerBlock.appendChild(cardsRow);
-      container.appendChild(playerBlock);
+    // Hand
+    const handRow = document.getElementById('view-hand-row');
+    if (handRow) {
+      const hand = gs.hands?.[BV.myId] || [];
+      handRow.innerHTML = hand.length
+        ? hand.map(lt => `<span class="hand-letter">${lt}</span>`).join('')
+        : '<span style="font-family:'Libre Baskerville',serif;font-style:italic;font-size:12px;color:var(--muted)">—</span>';
+    }
+
+    // Player cards table
+    BV._renderPlayerCardsTable(gs);
+  },
+
+  _renderPlayerCardsTable(gs) {
+    const table = document.getElementById('player-cards-table');
+    if (!table) return;
+    const playerCards = gs.playerCards || {};
+    const tbody = table.querySelector('tbody') || table;
+
+    // Build header
+    let html = '<thead><tr><th>Agent</th><th>Cards Answered</th></tr></thead><tbody>';
+    gs.turnOrder.forEach((pid, idx) => {
+      const isTurn = idx === gs.currentTurnIdx && gs.phase === 'choose-card';
+      const isElim = gs.eliminated?.includes(pid);
+      const isMe = pid === BV.myId;
+      const name = BV._playerName(gs, pid);
+      const cards = playerCards[pid] || [];
+
+      let nameHtml = '';
+      if (isTurn) nameHtml += '<span class="pulse-dot" style="width:7px;height:7px;margin-right:4px;flex-shrink:0"></span>';
+      if (isElim) nameHtml += '<span style="font-size:10px;color:var(--blood);margin-right:3px">✗</span>';
+      nameHtml += `<span class="pname-cell${isTurn?' pname-turn':isElim?' pname-elim':''}">${name}${isMe?' (you)':''}</span>`;
+
+      let cardsHtml = '';
+      if (cards.length === 0) {
+        cardsHtml = '<span class="no-cards-msg">—</span>';
+      } else {
+        cards.forEach(entry => {
+          let pips = '';
+          for (let i=0;i<3;i++) pips += i<entry.count
+            ? '<span class="chip-pip"></span>'
+            : '<span class="chip-pip-empty"></span>';
+          cardsHtml += `<div class="pcard-entry">${pips}<span style="margin-left:3px">${entry.card}</span></div>`;
+        });
+      }
+
+      html += `<tr>
+        <td style="display:flex;align-items:center;gap:4px">${nameHtml}</td>
+        <td>${cardsHtml}</td>
+      </tr>`;
     });
-  },
-
-  _renderActionIdle() {
-    document.getElementById('action-panel').innerHTML =
-      `<div class="action-step-label">Step 1</div>
-       <div class="action-text">Choose an available investigation card, then pick a player to question.</div>`;
-  },
-
-  _renderActionWaiting(gs) {
-    const inv = gs.pendingInv;
-    document.getElementById('action-panel').innerHTML =
-      `<div class="action-step-label">Investigation Underway</div>
-       <div class="action-text"><strong>${BV._playerName(gs, inv.askerId)}</strong> asked
-       <strong>${BV._playerName(gs, inv.targetId)}</strong> about
-       <strong>${inv.card}</strong>.<br>Waiting for answer…</div>`;
+    html += '</tbody>';
+    table.innerHTML = html;
   },
 
   // ── TURN FLOW ──────────────────────────────────────────────────
@@ -451,8 +417,8 @@ const BV = {
     BV._pendingCard = null;
     BV._pendingCardStr = null;
     BV._pendingStackIdx = null;
-    BV._renderActionIdle();
-    BV._renderAvailableCards(BV.state, true);
+    BV._pendingTarget = null;
+    BV.renderInvestigateTab();
   },
 
   async _selectTarget(targetId) {
@@ -460,31 +426,31 @@ const BV = {
       askerId: BV.myId,
       targetId,
       card: BV._pendingCardStr,
-      stackIdx: BV._pendingStackIdx,       // null if replaying a 0-chip card
+      stackIdx: BV._pendingStackIdx,
       isZeroReplay: BV._pendingCard?.startsWith('zero-'),
       zeroReplayIdx: BV._pendingCard?.startsWith('zero-')
         ? parseInt(BV._pendingCard.split('-')[1]) : null,
     };
 
+    BV._pendingCard = null;
+    BV._pendingCardStr = null;
+    BV._pendingStackIdx = null;
+    BV._pendingTarget = null;
+
     await db.ref(`rooms/${BV.roomCode}/gameState`).update({
       phase: 'waiting-answer',
       pendingInv
     });
-
-    BV._pendingCard = null;
-    BV._pendingCardStr = null;
-    BV._pendingStackIdx = null;
   },
 
   // ── ANSWER ─────────────────────────────────────────────────────
 
   _showAnswerPrompt(inv) {
     document.getElementById('answer-overlay').style.display = 'flex';
-    document.getElementById('answer-eyebrow').textContent =
-      `${BV._playerName(BV.state, inv.askerId)} is questioning you`;
-
-    const display = document.getElementById('answer-cards-display');
-    display.innerHTML = `<div class="answer-inv-card">${inv.card}</div>`;
+    const who = document.getElementById('answer-who');
+    if (who) who.textContent = `${BV._playerName(BV.state, inv.askerId)} asks you about:`;
+    const lettersEl = document.getElementById('answer-card-letters');
+    if (lettersEl) lettersEl.textContent = inv.card;
 
     const sel = document.getElementById('chip-selector');
     sel.innerHTML = '';
@@ -648,40 +614,113 @@ const BV = {
     });
   },
 
-  // ── LOG ────────────────────────────────────────────────────────
+  // ── LOG TAB ────────────────────────────────────────────────────
 
-  _renderLog(gs) {
-    const list = document.getElementById('log-list');
+  _renderLogTab(gs) {
+    const tbody = document.getElementById('log-tbody');
+    if (!tbody) return;
     const entries = gs.log || [];
     if (!entries.length) {
-      list.innerHTML = '<div class="waiting-msg" style="font-size:12px">No investigations yet.</div>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;font-family:'Libre Baskerville',serif;font-style:italic;color:var(--muted);padding:12px">No investigations yet.</td></tr>';
       return;
     }
-    list.innerHTML = [...entries].reverse().slice(0, 30).map(e => {
-      let chipsHtml = e.count === 0
-        ? '<span class="log-zero">0</span>'
-        : Array(e.count).fill('<div class="log-chip"></div>').join('');
-      return `<div class="log-entry">
-        <span class="log-n">${e.n}</span>
-        <span class="log-text"><strong>${e.asker}</strong> → <strong>${e.target}</strong>: ${e.card}</span>
-        <div class="log-chips">${chipsHtml}</div>
-      </div>`;
+    tbody.innerHTML = [...entries].reverse().slice(0, 50).map(e => {
+      let pips = '';
+      if (e.count === 0) pips = '<span class="log-zero">0</span>';
+      else for (let i=0;i<e.count;i++) pips += '<div class="log-pip"></div>';
+      return `<tr>
+        <td>${e.n}</td>
+        <td>${e.asker}</td>
+        <td>${e.target}</td>
+        <td style="font-family:'Special Elite',cursive;letter-spacing:.1em">${e.card}</td>
+        <td><div class="log-pips">${pips}</div></td>
+      </tr>`;
     }).join('');
   },
 
-  // ── PLAYERS STATUS ─────────────────────────────────────────────
+  // ── INVESTIGATE TAB ────────────────────────────────────────────
 
-  _renderPlayers(gs) {
-    const container = document.getElementById('players-status');
-    container.innerHTML = '';
-    (gs.turnOrder || []).forEach((pid, idx) => {
-      const isTurn = idx === gs.currentTurnIdx && gs.phase === 'choose-card';
-      const isElim = gs.eliminated?.includes(pid);
-      const item = document.createElement('div');
-      item.className = 'player-status-item' + (isTurn ? ' is-turn' : '') + (isElim ? ' eliminated' : '');
-      item.innerHTML = `<div class="player-status-dot"></div>${BV._playerName(gs, pid)}${isElim ? ' ✗' : ''}`;
-      container.appendChild(item);
-    });
+  renderInvestigateTab() {
+    const gs = BV.state;
+    const el = document.getElementById('investigate-content');
+    if (!el || !gs) return;
+
+    const myTurn = gs.turnOrder[gs.currentTurnIdx] === BV.myId;
+    const isEliminated = gs.eliminated?.includes(BV.myId);
+
+    // Not your turn
+    if (!myTurn || isEliminated) {
+      if (gs.phase === 'waiting-answer' && gs.pendingInv?.targetId === BV.myId) {
+        // Your turn to answer — already handled by overlay
+        el.innerHTML = '<div class="waiting-msg">Check the answer prompt that appeared on your screen.</div>';
+      } else {
+        const current = BV._playerName(gs, gs.turnOrder[gs.currentTurnIdx]);
+        el.innerHTML = gs.phase === 'waiting-answer'
+          ? `<div class="waiting-msg">Waiting for <strong style="color:var(--ink)">${BV._playerName(gs, gs.pendingInv?.targetId)}</strong> to answer…</div>`
+          : `<div class="waiting-msg">It is <strong style="color:var(--ink)">${current}</strong>'s turn to investigate.</div>`;
+      }
+      return;
+    }
+
+    // It's your turn — step 1: pick a card (or already picked)
+    if (gs.phase === 'choose-card' && !BV._pendingCard) {
+      // Build card list
+      const topCards = gs.topCards || [];
+      const zeroCards = gs.zeroChipCards || [];
+      const anyCards = topCards.some(c=>c) || zeroCards.length > 0;
+
+      let html = `<div class="inv-step-label">Step 1 — Choose an Investigation Card</div>
+        <div class="inv-step-body">Select a card to present to another player.</div>
+        <div class="card-pick-list">`;
+
+      topCards.forEach((card, si) => {
+        if (!card) return;
+        const sel = BV._pendingCard === `stack-${si}`;
+        html += `<div class="card-pick-row${sel?' selected':''}" onclick="BV._selectCard('stack-${si}','${card}',${si},BV.state)">
+          <span class="cpick-letters">${card}</span>
+          <span class="cpick-meta">Stack ${si+1}</span>
+          <span class="cpick-badge badge-new">New</span>
+        </div>`;
+      });
+
+      zeroCards.forEach((entry, zi) => {
+        const sel = BV._pendingCard === `zero-${zi}`;
+        html += `<div class="card-pick-row zero${sel?' selected':''}" onclick="BV._selectCard('zero-${zi}','${entry.card}',null,BV.state)">
+          <span class="cpick-letters">${entry.card}</span>
+          <span class="cpick-meta">0 chips — replayable</span>
+          <span class="cpick-badge badge-replay">Replay</span>
+        </div>`;
+      });
+
+      if (!anyCards) html += '<div class="waiting-msg">No cards available.</div>';
+      html += '</div>';
+      el.innerHTML = html;
+      return;
+    }
+
+    // Step 2: card chosen, pick target
+    if (BV._pendingCard && !BV._pendingTarget) {
+      let html = `<div class="inv-step-label">Step 2 — Choose Who to Question</div>
+        <div class="inv-step-body">Card: <strong style="font-family:'Special Elite',cursive;letter-spacing:.15em;font-size:16px">${BV._pendingCardStr}</strong><br>Select a player to interrogate.</div>
+        <div class="target-list">`;
+
+      gs.turnOrder.forEach(pid => {
+        if (pid === BV.myId) return;
+        const elim = gs.eliminated?.includes(pid);
+        html += `<button class="target-btn" onclick="BV._selectTarget('${pid}')" ${elim?'disabled':''}>${BV._playerName(gs, pid)}</button>`;
+      });
+
+      html += `</div>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="BV._cancelCard()">← Back</button>`;
+      el.innerHTML = html;
+      return;
+    }
+
+    // Waiting for answer
+    if (gs.phase === 'waiting-answer') {
+      const target = BV._playerName(gs, gs.pendingInv?.targetId);
+      el.innerHTML = `<div class="waiting-msg">Waiting for <strong style="color:var(--ink)">${target}</strong> to answer…</div>`;
+    }
   },
 
   // ── INVESTIGATION SHEET ────────────────────────────────────────

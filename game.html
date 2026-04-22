@@ -7,134 +7,542 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>
+body.game-body { background: #1a1108; padding-bottom: 0; }
+
+/* MASTHEAD */
+.masthead {
+  background: var(--paper);
+  background-image: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(200,170,90,.2) 0%, transparent 70%);
+  border-bottom: 3px solid var(--rust);
+  padding: 10px 14px 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+.masthead-title {
+  font-family: 'Special Elite', cursive;
+  font-size: clamp(22px, 6vw, 38px);
+  color: var(--rust);
+  letter-spacing: .06em;
+  line-height: 1;
+}
+.masthead-meta {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .1em;
+  margin-top: 3px;
+}
+.masthead-meta span { color: var(--ink); font-weight: 700; }
+
+/* TABS */
+.tab-bar {
+  display: flex;
+  background: #2a1f0e;
+  border-bottom: 2px solid #3a2810;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  font-family: 'Special Elite', cursive;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: #7a6240;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.tab-btn:hover { color: var(--aged); }
+.tab-btn.active { color: var(--paper); border-bottom-color: var(--rust); background: rgba(139,37,0,.12); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* TURN BANNER */
+.turn-banner {
+  background: #110c06;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #2a1a08;
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--aged);
+}
+
+/* SECTION WRAPPER */
+.tab-section { padding: 12px 14px 8px; }
+
+.section-eyebrow {
+  font-family: 'Special Elite', cursive;
+  font-size: 10px;
+  letter-spacing: .3em;
+  color: var(--rust);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* CASE TABLE */
+.case-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  background: var(--paper);
+  border: 1px solid var(--aged);
+  margin-bottom: 10px;
+}
+.case-table th {
+  background: #d4c090;
+  font-family: 'Special Elite', cursive;
+  font-size: 10px;
+  letter-spacing: .18em;
+  color: var(--ink);
+  text-transform: uppercase;
+  padding: 5px 8px;
+  border: 1px solid var(--aged);
+  text-align: left;
+}
+.case-table td {
+  padding: 6px 8px;
+  border: 1px solid var(--aged);
+  color: var(--ink);
+  vertical-align: top;
+}
+.avail-cards {
+  font-family: 'Special Elite', cursive;
+  font-size: 14px;
+  letter-spacing: .15em;
+  line-height: 2;
+  color: var(--ink);
+}
+.avail-card-item { display: inline-block; margin-right: 10px; }
+.avail-card-replay {
+  font-size: 9px;
+  color: var(--green);
+  background: rgba(44,95,30,.12);
+  border: 1px solid rgba(44,95,30,.3);
+  padding: 1px 5px;
+  margin-left: 3px;
+  vertical-align: middle;
+  font-family: 'Courier Prime', monospace;
+  letter-spacing: .08em;
+}
+.view-note {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* HAND ROW */
+.hand-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--paper);
+  border: 1px solid var(--aged);
+  margin-bottom: 12px;
+  min-height: 34px;
+}
+.hand-letter {
+  font-family: 'Special Elite', cursive;
+  font-size: 16px;
+  color: var(--ink);
+  min-width: 20px;
+  text-align: center;
+}
+
+/* PLAYER CARDS TABLE */
+.player-cards-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  background: var(--paper);
+  border: 1px solid var(--aged);
+  margin-bottom: 12px;
+}
+.player-cards-table th {
+  background: #d4c090;
+  font-family: 'Special Elite', cursive;
+  font-size: 10px;
+  letter-spacing: .15em;
+  color: var(--ink);
+  text-transform: uppercase;
+  padding: 5px 8px;
+  border: 1px solid var(--aged);
+  text-align: left;
+  white-space: nowrap;
+}
+.player-cards-table td {
+  padding: 5px 8px;
+  border: 1px solid var(--aged);
+  vertical-align: top;
+}
+.pcard-entry {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 3px;
+  font-family: 'Special Elite', cursive;
+  font-size: 13px;
+  color: var(--ink);
+  letter-spacing: .08em;
+}
+.chip-pip {
+  width: 8px;
+  height: 8px;
+  background: var(--sepia);
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  box-shadow: 0 0 3px rgba(139,105,20,.5);
+}
+.chip-pip-empty {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--aged);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.pname-cell {
+  font-family: 'Special Elite', cursive;
+  font-size: 12px;
+  color: var(--ink);
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+.pname-turn { color: var(--rust); }
+.pname-elim { color: var(--muted); text-decoration: line-through; }
+.no-cards-msg {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* INVESTIGATE TAB */
+.inv-step-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 10px;
+  letter-spacing: .3em;
+  color: var(--rust);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.inv-step-body {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.card-pick-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.card-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--aged);
+  cursor: pointer;
+  transition: all .15s;
+}
+.card-pick-row:hover { border-color: var(--sepia); background: #ede3c5; }
+.card-pick-row.selected { border-color: var(--rust); background: #f0dfc8; box-shadow: 0 0 10px rgba(139,37,0,.2); }
+.card-pick-row.zero { border-color: rgba(44,95,30,.35); }
+.card-pick-row.zero:hover { border-color: var(--green); background: #eaf0e4; }
+.card-pick-row.zero.selected { border-color: var(--green); background: #e4edd8; box-shadow: 0 0 10px rgba(44,95,30,.2); }
+.cpick-letters {
+  font-family: 'Special Elite', cursive;
+  font-size: 20px;
+  color: var(--ink);
+  letter-spacing: .25em;
+  min-width: 68px;
+}
+.cpick-meta { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--muted); }
+.cpick-badge {
+  font-family: 'Special Elite', cursive;
+  font-size: 9px;
+  padding: 2px 7px;
+  letter-spacing: .1em;
+  margin-left: auto;
+}
+.badge-new { background: rgba(139,37,0,.1); color: var(--rust); border: 1px solid rgba(139,37,0,.25); }
+.badge-replay { background: rgba(44,95,30,.1); color: var(--green); border: 1px solid rgba(44,95,30,.3); }
+
+.target-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.target-btn {
+  font-family: 'Special Elite', cursive;
+  font-size: 13px;
+  letter-spacing: .1em;
+  padding: 10px 18px;
+  border: 2px solid var(--aged);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all .15s;
+  text-transform: uppercase;
+}
+.target-btn:hover:not(:disabled) { border-color: var(--sepia); background: #ede3c5; }
+.target-btn.selected { background: var(--rust); color: var(--paper); border-color: var(--rust); }
+.target-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* NOTES / SHEET */
+.notes-hint {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+/* LOG TABLE */
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  background: var(--paper);
+  border: 1px solid var(--aged);
+}
+.log-table th {
+  background: #d4c090;
+  font-family: 'Special Elite', cursive;
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  padding: 4px 6px;
+  border: 1px solid var(--aged);
+  text-align: left;
+  color: var(--ink);
+}
+.log-table td { padding: 4px 6px; border-bottom: 1px solid rgba(139,105,20,.12); color: var(--ink); }
+.log-table tr:nth-child(even) td { background: rgba(139,105,20,.04); }
+.log-pips { display: flex; gap: 2px; align-items: center; }
+.log-pip { width: 8px; height: 8px; background: var(--sepia); border-radius: 50%; }
+.log-zero { color: var(--muted); font-size: 10px; }
+
+/* ANSWER OVERLAY */
+.answer-overlay {
+  position: fixed; inset: 0; background: rgba(8,4,2,.96); z-index: 100;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.answer-card { width: 100%; max-width: 420px; padding: 28px 24px; }
+.answer-who { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.answer-card-letters {
+  font-family: 'Special Elite', cursive;
+  font-size: 36px;
+  letter-spacing: .3em;
+  color: var(--ink);
+  text-align: center;
+  margin: 12px 0 8px;
+  padding: 14px;
+  background: rgba(139,105,20,.08);
+  border: 2px solid var(--aged);
+}
+.answer-instr { font-family: 'Libre Baskerville', serif; font-size: 14px; color: var(--ink); text-align: center; line-height: 1.5; margin-bottom: 12px; }
+.chip-selector { display: flex; gap: 8px; justify-content: center; margin: 12px 0 16px; flex-wrap: wrap; }
+.chip-count-btn {
+  width: 56px; height: 56px;
+  font-family: 'Special Elite', cursive; font-size: 24px;
+  border: 2px solid var(--aged); background: var(--paper); color: var(--muted);
+  cursor: pointer; transition: all .15s;
+}
+.chip-count-btn.sel { background: var(--sepia); color: var(--paper); border-color: var(--sepia); box-shadow: 0 0 12px rgba(139,105,20,.4); }
+
+/* HAND OVERLAY */
+.hand-overlay {
+  position: fixed; inset: 0; background: rgba(8,4,2,.97); z-index: 100;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.hand-card { width: 100%; max-width: 420px; padding: 28px 24px; }
+.hand-letters-display { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 16px 0; }
+.hand-letter-card {
+  width: 44px; height: 58px;
+  background: #b80024; border: 2px solid #7a0016;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Special Elite', cursive; font-size: 20px; color: #f2e8d0;
+  box-shadow: 2px 3px 8px rgba(0,0,0,.45); position: relative;
+}
+.hand-letter-card::before { content:''; position:absolute; inset:3px; border:1px solid rgba(255,255,255,.18); }
+
+/* END OVERLAY */
+.end-overlay {
+  position: fixed; inset: 0; background: rgba(8,4,2,.96); z-index: 100;
+  display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;
+  flex-direction: column;
+}
+.end-card { width: 100%; max-width: 460px; padding: 32px 28px; text-align: center; }
+
+/* ACCUSE SLOTS */
+.accuse-slot {
+  width: 58px; height: 70px;
+  border: 2px dashed var(--aged);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Special Elite', cursive; font-size: 26px; color: #f0e4c8;
+  transition: all .2s; cursor: pointer;
+}
+.accuse-slot.filled { border-style: solid; border-color: var(--rust); background: rgba(139,37,0,.15); box-shadow: 0 0 12px rgba(139,37,0,.3); }
+
+/* utils */
+.waiting-msg { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 13px; color: var(--muted); text-align: center; padding: 16px 0; }
+.err-msg { color: var(--blood); font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 12px; min-height: 18px; margin-top: 6px; }
+</style>
 </head>
 <body class="game-body">
 
-<!-- HAND REVEAL (shown once at start) -->
-<div id="hand-reveal" class="fullscreen-overlay" style="display:none">
+<!-- HAND REVEAL -->
+<div class="hand-overlay" id="hand-reveal">
   <div class="paper-card hand-card">
-    <div class="card-eyebrow">Your Secret Aliases</div>
+    <div class="card-eyebrow">Confidential — Your Aliases</div>
     <h2 class="card-title" id="hand-player-name">Agent —</h2>
-    <p class="hand-note">These suspects are <strong>NOT</strong> Black Vienna — you can provide their alibi.</p>
-    <div class="hand-cards" id="hand-cards-grid"></div>
-    <p class="memo-note">Memorise your cards. No one else can see this screen.</p>
+    <p style="font-family:'Libre Baskerville',serif;font-size:13px;color:var(--muted);line-height:1.5">These suspects are <strong>NOT</strong> Black Vienna. You can alibi them.</p>
+    <div class="hand-letters-display" id="hand-cards-grid"></div>
+    <p style="font-family:'Libre Baskerville',serif;font-style:italic;font-size:11px;color:var(--muted);text-align:center;margin:8px 0 16px;padding:8px;border:1px dashed var(--aged)">Memorise your cards — no one else can see this screen.</p>
     <button class="btn btn-primary" onclick="BV.dismissHand()">I've Memorised My Cards</button>
   </div>
 </div>
 
-<!-- ANSWER PROMPT (shown when you're being questioned) -->
-<div id="answer-overlay" class="fullscreen-overlay" style="display:none">
+<!-- ANSWER OVERLAY -->
+<div class="answer-overlay" id="answer-overlay">
   <div class="paper-card answer-card">
-    <div class="card-eyebrow" id="answer-eyebrow">Interrogation</div>
-    <h2 class="card-title">You are being questioned</h2>
-    <div class="answer-card-display" id="answer-cards-display"></div>
-    <p class="answer-instr">Count how many of these letters are in your hand, then tap that number.</p>
+    <div class="card-eyebrow">You Are Being Questioned</div>
+    <div class="answer-who" id="answer-who"></div>
+    <div class="answer-card-letters" id="answer-card-letters">—</div>
+    <p class="answer-instr">How many of these letters are in your hand?</p>
     <div class="chip-selector" id="chip-selector"></div>
     <div id="answer-err" class="err-msg"></div>
     <button class="btn btn-primary" id="answer-confirm-btn" onclick="BV.submitAnswer()" disabled>Submit Answer</button>
   </div>
 </div>
 
-<!-- GAME HEADER -->
-<div class="game-header">
-  <div class="game-header-left">
-    <div class="header-room-code" id="header-room-code">——</div>
-    <div class="header-player-name" id="header-player-name">—</div>
-  </div>
-  <div class="game-header-right">
-    <div class="chips-display">
-      <span class="chips-label">Chips</span>
-      <span class="chips-value" id="chips-value">40</span>
-    </div>
-    <button class="btn btn-ghost btn-xs" onclick="toggleSheet()">Sheet</button>
-    <button class="btn btn-accent btn-xs" onclick="showAccuse()">Accuse</button>
-  </div>
-</div>
-
-<!-- TURN BANNER -->
-<div class="turn-banner" id="turn-banner">
-  <span class="pulse-dot"></span>
-  <span id="turn-text">Waiting…</span>
-</div>
-
-<!-- INVESTIGATION CARDS -->
-<div class="section-block">
-  <div class="section-label">Investigation Cards</div>
-  <div class="inv-cards-row" id="inv-cards-row"></div>
-</div>
-
-<!-- PLAYER CARDS (cards with chips sitting in front of players) -->
-<div class="section-block" id="player-cards-section" style="display:none">
-  <div class="section-label">Cards In Play</div>
-  <div id="player-cards-container"></div>
-</div>
-
-<!-- ACTION PANEL -->
-<div class="action-panel" id="action-panel">
-  <!-- Steps injected by JS -->
-</div>
-
-<!-- INVESTIGATION SHEET (slide-in) -->
-<div class="sheet-panel" id="sheet-panel" style="display:none">
-  <div class="sheet-header">
-    <div class="sheet-title">My Investigation Sheet</div>
-    <button class="btn btn-ghost btn-xs" onclick="toggleSheet()">Close</button>
-  </div>
-  <div class="sheet-scroll">
-    <table class="sheet-table" id="sheet-table"></table>
-  </div>
-  <div class="sheet-legend">
-    <span><span class="leg-sym plus">+</span> Has card</span>
-    <span><span class="leg-sym minus">−</span> Doesn't have</span>
-    <span><span class="leg-sym circle">○</span> Maybe criminal</span>
-  </div>
-</div>
-
-<!-- ACCUSATION PANEL -->
-<div class="accusation-panel" id="accusation-panel" style="display:none">
-  <div class="paper-card accuse-card">
-    <div class="card-eyebrow">Black Vienna Accusation</div>
-    <h2 class="card-title">Name the Three</h2>
-    <p class="accuse-warning">Wrong accusation = eliminated from winning. This cannot be undone.</p>
-    <div class="accuse-slots" id="accuse-slots">
-      <div class="accuse-slot" id="slot-0">?</div>
-      <div class="accuse-slot" id="slot-1">?</div>
-      <div class="accuse-slot" id="slot-2">?</div>
-    </div>
-    <div class="letter-grid" id="accuse-letter-grid"></div>
-    <div id="accuse-err" class="err-msg"></div>
-    <div class="btn-row">
-      <button class="btn btn-danger" id="accuse-confirm-btn" onclick="BV.confirmAccusation()" disabled>Confirm Accusation</button>
-      <button class="btn btn-ghost" onclick="hideAccuse()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- GAME LOG -->
-<div class="section-block">
-  <div class="section-label">Investigation Log</div>
-  <div class="log-list" id="log-list"></div>
-</div>
-
-<!-- PLAYERS STATUS -->
-<div class="section-block">
-  <div class="section-label">Investigators</div>
-  <div class="players-status" id="players-status"></div>
-</div>
-
-<!-- END GAME OVERLAY -->
-<div id="end-overlay" class="fullscreen-overlay" style="display:none">
+<!-- END OVERLAY -->
+<div class="end-overlay" id="end-overlay">
   <div class="paper-card end-card">
     <div class="card-eyebrow">Case Closed</div>
     <h2 class="card-title">Black Vienna Unmasked</h2>
-    <div class="criminal-reveal" id="criminal-reveal"></div>
+    <div id="criminal-reveal" style="display:flex;justify-content:center;gap:12px;margin:16px 0"></div>
     <div class="stamp" id="end-stamp">SOLVED</div>
-    <p id="end-message" class="end-msg"></p>
+    <p id="end-message" style="font-family:'Libre Baskerville',serif;font-style:italic;font-size:13px;color:var(--muted);margin:10px 0 14px;line-height:1.6"></p>
     <table class="scores-table" id="scores-table">
       <thead><tr><th>Agent</th><th>Accusation</th><th>Score</th></tr></thead>
       <tbody></tbody>
     </table>
-    <button class="btn btn-primary" onclick="window.location='index.html'">New Investigation</button>
+    <button class="btn btn-primary" style="margin-top:16px" onclick="window.location='index.html'">New Investigation</button>
+  </div>
+</div>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-title">BLACK VIENNA</div>
+  <div class="masthead-meta">Room <span id="header-room-code">——</span> &nbsp;·&nbsp; Agent: <span id="header-player-name">—</span> &nbsp;·&nbsp; Chips: <span id="chips-value">40</span></div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active"  onclick="switchTab('view')">View</button>
+  <button class="tab-btn"         onclick="switchTab('investigate')">Investigate</button>
+  <button class="tab-btn"         onclick="switchTab('accuse')">Accuse</button>
+  <button class="tab-btn"         onclick="switchTab('notes')">Notes</button>
+  <button class="tab-btn"         onclick="switchTab('log')">Log</button>
+</div>
+
+<!-- TURN BANNER -->
+<div class="turn-banner">
+  <span class="pulse-dot"></span>
+  <span id="turn-text">Waiting…</span>
+</div>
+
+<!-- ── VIEW ── -->
+<div class="tab-panel active" id="tab-view">
+  <div class="tab-section">
+    <div class="section-eyebrow">Case Information</div>
+    <table class="case-table">
+      <thead><tr><th>Current Turn</th><th>Available Investigation Cards</th></tr></thead>
+      <tbody><tr>
+        <td style="white-space:nowrap;font-family:'Special Elite',cursive;font-size:13px;text-align:center" id="view-current-turn">—</td>
+        <td><div class="avail-cards" id="view-avail-cards">—</div></td>
+      </tr></tbody>
+    </table>
+    <p class="view-note">· Cards with no chips can be replayed on any player.<br>· Cards with chips stay in front of the player who answered.</p>
+  </div>
+  <div class="tab-section">
+    <div class="section-eyebrow">Your Hand</div>
+    <div class="hand-row" id="view-hand-row"></div>
+  </div>
+  <div class="tab-section">
+    <div class="section-eyebrow">Cards In Play</div>
+    <table class="player-cards-table" id="player-cards-table">
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── INVESTIGATE ── -->
+<div class="tab-panel" id="tab-investigate">
+  <div class="tab-section" id="investigate-content">
+    <div class="waiting-msg">Loading…</div>
+  </div>
+</div>
+
+<!-- ── ACCUSE ── -->
+<div class="tab-panel" id="tab-accuse">
+  <div class="tab-section">
+    <div class="section-eyebrow">Black Vienna Accusation</div>
+    <p style="font-family:'Libre Baskerville',serif;font-size:13px;color:var(--blood);line-height:1.5;margin-bottom:14px;padding:10px;border:1px solid rgba(192,57,43,.3);background:rgba(192,57,43,.05)">Wrong accusation = eliminated from winning. Cannot be undone.</p>
+    <div style="font-family:'Special Elite',cursive;font-size:10px;letter-spacing:.2em;color:var(--muted);margin-bottom:8px;text-transform:uppercase">Your selection</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <div class="accuse-slot" id="slot-0" onclick="removeAccuse(0)">?</div>
+      <div class="accuse-slot" id="slot-1" onclick="removeAccuse(1)">?</div>
+      <div class="accuse-slot" id="slot-2" onclick="removeAccuse(2)">?</div>
+    </div>
+    <div class="letter-grid" id="accuse-letter-grid"></div>
+    <div id="accuse-err" class="err-msg"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-danger" id="accuse-confirm-btn" onclick="BV.confirmAccusation()" disabled>Confirm Accusation</button>
+      <button class="btn btn-ghost" onclick="clearAccuse()">Clear</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── NOTES ── -->
+<div class="tab-panel" id="tab-notes">
+  <div class="tab-section">
+    <p class="notes-hint">Tap any cell to cycle: blank → + (has card) → − (doesn't have) → ○ (possible criminal). Your own column is pre-filled.</p>
+    <div style="overflow-x:auto">
+      <table class="sheet-table" id="sheet-table"></table>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-family:'Courier Prime',monospace;font-size:11px;color:var(--muted)">
+      <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--green)">+</span> Has card</span>
+      <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--blood)">−</span> Doesn't have</span>
+      <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--rust)">○</span> Maybe criminal</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOG ── -->
+<div class="tab-panel" id="tab-log">
+  <div class="tab-section">
+    <table class="log-table">
+      <thead><tr><th>#</th><th>Asker</th><th>Target</th><th>Card</th><th>Chips</th></tr></thead>
+      <tbody id="log-tbody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -143,36 +551,39 @@
 <script src="config.js"></script>
 <script src="game.js"></script>
 <script>
-// Accusation UI
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['view','investigate','accuse','notes','log'][i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'notes') BV.renderSheet();
+  if (name === 'investigate') BV.renderInvestigateTab();
+  if (name === 'accuse') buildAccuseGrid();
+}
+
+// ── ACCUSATION ──────────────────────────────────────────────────
 let accuseSelection = [];
-
-function showAccuse() {
-  if (!BV.state || BV.state.eliminated?.includes(BV.myId)) {
-    alert('You have already made an incorrect accusation.');
-    return;
-  }
-  accuseSelection = [];
-  buildAccuseGrid();
-  document.getElementById('accusation-panel').style.display = 'flex';
-}
-
-function hideAccuse() {
-  document.getElementById('accusation-panel').style.display = 'none';
-  accuseSelection = [];
-}
 
 function buildAccuseGrid() {
   const myHand = BV.myHand || [];
+  const elim = BV.state?.eliminated?.includes(BV.myId);
   const grid = document.getElementById('accuse-letter-grid');
-  const SUSPECTS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','Ö'];
   grid.innerHTML = '';
+  if (elim) {
+    grid.innerHTML = '<div class="waiting-msg">You already made an incorrect accusation and cannot accuse again.</div>';
+    document.getElementById('accuse-confirm-btn').disabled = true;
+    return;
+  }
+  const SUSPECTS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','Ö'];
   SUSPECTS.forEach(lt => {
-    const isMyCard = myHand.includes(lt);
-    const isSelected = accuseSelection.includes(lt);
+    const isMine = myHand.includes(lt);
+    const isSel = accuseSelection.includes(lt);
     const tile = document.createElement('button');
-    tile.className = 'letter-tile' + (isMyCard ? ' disabled' : isSelected ? ' selected' : '');
+    tile.className = 'letter-tile' + (isMine ? ' disabled' : isSel ? ' selected' : '');
     tile.textContent = lt;
-    tile.disabled = isMyCard;
+    tile.disabled = isMine;
     tile.onclick = () => toggleAccuseLetter(lt);
     grid.appendChild(tile);
   });
@@ -187,6 +598,10 @@ function toggleAccuseLetter(lt) {
   buildAccuseGrid();
 }
 
+function removeAccuse(i) {
+  if (accuseSelection[i]) { accuseSelection.splice(i, 1); buildAccuseGrid(); }
+}
+
 function updateAccuseSlots() {
   for (let i = 0; i < 3; i++) {
     const s = document.getElementById(`slot-${i}`);
@@ -196,17 +611,10 @@ function updateAccuseSlots() {
   document.getElementById('accuse-confirm-btn').disabled = accuseSelection.length !== 3;
 }
 
-// Sheet toggle
-function toggleSheet() {
-  const panel = document.getElementById('sheet-panel');
-  const isHidden = panel.style.display === 'none';
-  panel.style.display = isHidden ? 'flex' : 'none';
-  if (isHidden) BV.renderSheet();
-}
+function clearAccuse() { accuseSelection = []; buildAccuseGrid(); }
 
-// Expose accuseSelection to game.js
 window.getAccuseSelection = () => accuseSelection;
-window.hideAccuse = hideAccuse;
+window.hideAccuse = () => {};
 </script>
 </body>
 </html>
