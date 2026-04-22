@@ -1,0 +1,27 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomCode": {
+        // Anyone can read a room (needed to join and watch game state)
+        ".read": true,
+        // Anyone can create a room
+        ".write": true,
+
+        "gameState": {
+          // All players can read game state
+          ".read": true,
+          // All players can write (we rely on client logic for turn enforcement)
+          // For a production app you'd add server-side validation via Cloud Functions
+          ".write": true
+        },
+
+        "players": {
+          ".read": true,
+          "$playerId": {
+            ".write": true
+          }
+        }
+      }
+    }
+  }
+}

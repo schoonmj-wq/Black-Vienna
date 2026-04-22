@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Black Vienna</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- TITLE -->
+<div id="title-screen" class="screen active">
+  <div class="city-silhouette"></div>
+  <div class="title-content">
+    <div class="red-bar"></div>
+    <h1 class="game-title">BLACK<br>VIENNA</h1>
+    <div class="red-bar" style="margin-top:7px"></div>
+    <p class="game-subtitle">A Deduction Game · 3–6 Players</p>
+    <p class="title-blurb">Post-war Vienna. Three criminals haunt the shadows.<br>Can you expose them before the others?</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="showScreen('create-screen')">Create Game</button>
+      <button class="btn btn-ghost" onclick="showScreen('join-screen')">Join Game</button>
+    </div>
+    <button class="btn btn-link" onclick="showScreen('rules-screen')">How to Play</button>
+  </div>
+</div>
+
+<!-- CREATE GAME -->
+<div id="create-screen" class="screen">
+  <div class="paper-card">
+    <div class="card-eyebrow">New Investigation</div>
+    <h2 class="card-title">Create Game</h2>
+    <div class="form-group">
+      <label class="form-label">Your Code Name</label>
+      <input class="form-input" id="create-name" type="text" placeholder="e.g. Marlowe" maxlength="20" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Number of Players</label>
+      <div class="count-row" id="player-count-btns">
+        <button class="cnt-btn" onclick="setCount(3)">3</button>
+        <button class="cnt-btn" onclick="setCount(4)">4</button>
+        <button class="cnt-btn active" onclick="setCount(5)">5</button>
+        <button class="cnt-btn" onclick="setCount(6)">6</button>
+      </div>
+    </div>
+    <p class="form-note">Other players will join using a room code.</p>
+    <div id="create-err" class="err-msg"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="createGame()">Create Room</button>
+      <button class="btn btn-ghost" onclick="showScreen('title-screen')">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOIN GAME -->
+<div id="join-screen" class="screen">
+  <div class="paper-card">
+    <div class="card-eyebrow">Enter the Investigation</div>
+    <h2 class="card-title">Join Game</h2>
+    <div class="form-group">
+      <label class="form-label">Room Code</label>
+      <input class="form-input code-input" id="join-code" type="text" placeholder="XXXX" maxlength="4" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your Code Name</label>
+      <input class="form-input" id="join-name" type="text" placeholder="e.g. Spade" maxlength="20" autocomplete="off">
+    </div>
+    <div id="join-err" class="err-msg"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="joinGame()">Join Room</button>
+      <button class="btn btn-ghost" onclick="showScreen('title-screen')">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOBBY (waiting room) -->
+<div id="lobby-screen" class="screen">
+  <div class="paper-card">
+    <div class="card-eyebrow">Waiting for Investigators</div>
+    <h2 class="card-title">Room <span id="lobby-code" class="room-code">——</span></h2>
+    <p class="form-note" style="margin-bottom:20px">Share this code with other players so they can join.</p>
+    <div class="player-list" id="lobby-players"></div>
+    <div id="lobby-status" class="lobby-status">Waiting for players…</div>
+    <div id="lobby-host-controls" style="display:none; margin-top:20px">
+      <button class="btn btn-primary" id="start-btn" onclick="startGame()" disabled>Deal Cards</button>
+    </div>
+    <div id="lobby-err" class="err-msg"></div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div id="rules-screen" class="screen">
+  <div class="paper-card rules-card">
+    <h2 class="card-title">How to Play</h2>
+    <div class="rules-body">
+      <h3>The Goal</h3>
+      <p>Three suspect cards were set aside at the start — those are "Black Vienna." The rest were dealt to players. Deduce which three were set aside by interrogating each other.</p>
+      <h3>On Your Turn</h3>
+      <p>Choose one of the three face-up investigation cards (each shows 3 suspect letters) and select another player to interrogate. They'll answer privately — placing 0–3 chips to show how many of those letters they hold. The questioned player then becomes the next asker.</p>
+      <h3>Special Investigations</h3>
+      <p>After everyone has been questioned at least once and 6+ investigations have occurred, you may also pair a used (face-down) card with your current card — giving the target two cards to answer at once.</p>
+      <h3>Your Sheet</h3>
+      <p>Use your investigation sheet to track results. Mark <strong>+</strong> (has card), <strong>−</strong> (doesn't have), or <strong>○</strong> (possible Black Vienna). Tap any cell to cycle.</p>
+      <h3>Accusation</h3>
+      <p>At any time tap Accuse and name the three criminals. Correct = you win. Wrong = you're eliminated from winning but keep playing. Score zero if wrong.</p>
+      <h3>Scoring</h3>
+      <p>Winner: 3 pts × chips remaining. Others who were correct at game end: 1 pt × chips remaining.</p>
+      <h3>Card Distribution</h3>
+      <p>3 players: 8 cards · 4 players: 6 cards · 5 players: dealer 4, others 5 · 6 players: 4 cards</p>
+    </div>
+    <button class="btn btn-primary" onclick="showScreen('title-screen')">Got It</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="config.js"></script>
+<script src="game.js"></script>
+<script>
+function setCount(n) {
+  document.querySelectorAll('.cnt-btn').forEach((b,i) => b.classList.toggle('active', i === n-3));
+  window._selectedCount = n;
+}
+window._selectedCount = 5;
+
+async function createGame() {
+  const name = document.getElementById('create-name').value.trim();
+  if (!name) { document.getElementById('create-err').textContent = 'Enter your code name.'; return; }
+  document.getElementById('create-err').textContent = '';
+  const btn = document.querySelector('#create-screen .btn-primary');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    await BV.createRoom(name, window._selectedCount);
+  } catch(e) {
+    document.getElementById('create-err').textContent = e.message;
+    btn.disabled = false; btn.textContent = 'Create Room';
+  }
+}
+
+async function joinGame() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const name = document.getElementById('join-name').value.trim();
+  if (!code || code.length !== 4) { document.getElementById('join-err').textContent = 'Enter the 4-letter room code.'; return; }
+  if (!name) { document.getElementById('join-err').textContent = 'Enter your code name.'; return; }
+  document.getElementById('join-err').textContent = '';
+  const btn = document.querySelector('#join-screen .btn-primary');
+  btn.disabled = true; btn.textContent = 'Joining…';
+  try {
+    await BV.joinRoom(code, name);
+  } catch(e) {
+    document.getElementById('join-err').textContent = e.message;
+    btn.disabled = false; btn.textContent = 'Join Room';
+  }
+}
+
+async function startGame() {
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true; btn.textContent = 'Dealing…';
+  try {
+    await BV.dealCards();
+  } catch(e) {
+    document.getElementById('lobby-err').textContent = e.message;
+    btn.disabled = false; btn.textContent = 'Deal Cards';
+  }
+}
+</script>
+</body>
+</html>
