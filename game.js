@@ -39,6 +39,7 @@ const BV = {
   _pendingAnswer: null,
   _pendingCard: null,
   _pendingCardStr: null,
+  _pendingStackIdx: null,
   _pendingTarget: null,
 
   // ── LOBBY ──────────────────────────────────────────────────────
@@ -410,7 +411,51 @@ const BV = {
     panel.style.display = 'none';
   },
 
-  // ── PLAYER CARDS TABLE ─────────────────────────────────────────
+  // ── TURN FLOW ──────────────────────────────────────────────────
+
+  _selectCard(pendingKey, cardStr, stackIdx, gs) {
+    BV._pendingCard = pendingKey;
+    BV._pendingCardStr = cardStr;
+    BV._pendingStackIdx = stackIdx;
+    BV._pendingTarget = null;
+    // Re-render to show target picker in action panel
+    BV._renderInvCards(gs, false);
+    BV._renderActionPanel(gs, true, false);
+  },
+
+  _cancelCard() {
+    BV._pendingCard = null;
+    BV._pendingCardStr = null;
+    BV._pendingStackIdx = null;
+    BV._pendingTarget = null;
+    const gs = BV.state;
+    BV._renderInvCards(gs, true);
+    BV._renderActionPanel(gs, true, false);
+  },
+
+  async _selectTarget(targetId) {
+    const pendingInv = {
+      askerId: BV.myId,
+      targetId,
+      card: BV._pendingCardStr,
+      stackIdx: BV._pendingStackIdx,
+      isZeroReplay: BV._pendingCard?.startsWith('zero-'),
+      zeroReplayIdx: BV._pendingCard?.startsWith('zero-')
+        ? parseInt(BV._pendingCard.split('-')[1]) : null,
+    };
+
+    BV._pendingCard = null;
+    BV._pendingCardStr = null;
+    BV._pendingStackIdx = null;
+    BV._pendingTarget = null;
+
+    await db.ref('rooms/' + BV.roomCode + '/gameState').update({
+      phase: 'waiting-answer',
+      pendingInv
+    });
+  },
+
+    // ── PLAYER CARDS TABLE ─────────────────────────────────────────
 
   _renderPlayerCardsTable(gs) {
     const table = document.getElementById('player-cards-table');
