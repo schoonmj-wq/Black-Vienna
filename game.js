@@ -595,14 +595,15 @@ const BV = {
       newTopCards[si] = stacks[si][0] || null;
     }
 
+    // Always record in playerCards for tracking — shows chip count to all players
+    if (!newPlayerCards[inv.targetId]) newPlayerCards[inv.targetId] = [];
+    newPlayerCards[inv.targetId].push({ card: inv.card, count });
+
     if (count === 0) {
-      // 0 chips: card goes back to the pool — anyone can ask it again
+      // 0 chips: also goes back to the pool so it can be asked again
       newZeroChipCards.push({ card: inv.card });
-    } else {
-      // 1-3 chips: card stays in front of this player permanently
-      if (!newPlayerCards[inv.targetId]) newPlayerCards[inv.targetId] = [];
-      newPlayerCards[inv.targetId].push({ card: inv.card, count });
     }
+    // 1-3 chips: card stays in front of player only (not replayable)
 
     const newChips = Math.max(0, (gs.chips || 40) - count);
 
@@ -662,9 +663,26 @@ const BV = {
       updates['status'] = 'ended';
       updates['winnerId'] = BV.myId;
     } else {
-      const newElim = [...(BV.state.eliminated || []), BV.myId];
+      const gs = BV.state;
+      const newElim = [...(gs.eliminated || []), BV.myId];
       updates['eliminated'] = newElim;
-      if (newElim.length >= BV.state.turnOrder.length) updates['status'] = 'ended';
+
+      if (newElim.length >= gs.turnOrder.length) {
+        updates['status'] = 'ended';
+      } else {
+        // Advance turn to next non-eliminated player
+        let nextTurnIdx = gs.currentTurnIdx;
+        const n = gs.turnOrder.length;
+        for (let i = 1; i <= n; i++) {
+          const idx = (gs.currentTurnIdx + i) % n;
+          if (!newElim.includes(gs.turnOrder[idx])) {
+            nextTurnIdx = idx;
+            break;
+          }
+        }
+        updates['currentTurnIdx'] = nextTurnIdx;
+        updates['phase'] = 'choose-card';
+      }
     }
 
     await db.ref(`rooms/${BV.roomCode}/gameState`).update(updates);
