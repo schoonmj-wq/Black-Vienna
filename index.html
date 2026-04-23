@@ -51,6 +51,18 @@
 </head>
 <body>
 
+<!-- REJOIN BANNER -->
+<div id="rejoin-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1c1108;border-top:2px solid var(--rust);padding:14px 16px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,.6)">
+  <div>
+    <div style="font-family:'Special Elite',cursive;font-size:11px;letter-spacing:.3em;color:var(--sepia);text-transform:uppercase;margin-bottom:3px">Game In Progress</div>
+    <div style="font-family:'Courier Prime',monospace;font-size:13px;color:var(--aged)">Room <span id="rejoin-room" style="color:#f0e4c8;font-weight:700"></span> · Agent <span id="rejoin-name" style="color:#f0e4c8;font-weight:700"></span></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button class="btn btn-primary btn-xs" onclick="BV._rejoin()">Rejoin Game</button>
+    <button class="btn btn-ghost btn-xs" onclick="BV._clearSaved()">Dismiss</button>
+  </div>
+</div>
+
 <!-- TITLE -->
 <div id="title-screen" class="screen active">
   <div class="city-silhouette"></div>

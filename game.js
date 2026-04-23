@@ -66,9 +66,9 @@ const BV = {
     });
 
     BV._scheduleCleanup(code);
-    sessionStorage.setItem('bv_room', code);
-    sessionStorage.setItem('bv_id', playerId);
-    sessionStorage.setItem('bv_name', name);
+    localStorage.setItem('bv_room', code);
+    localStorage.setItem('bv_id', playerId);
+    localStorage.setItem('bv_name', name);
     showScreen('lobby-screen');
     BV._watchLobby();
   },
@@ -92,9 +92,9 @@ const BV = {
 
     await db.ref(`rooms/${code}/players/${playerId}`).set({ name, order: currentPlayers, ready: false });
 
-    sessionStorage.setItem('bv_room', code);
-    sessionStorage.setItem('bv_id', playerId);
-    sessionStorage.setItem('bv_name', name);
+    localStorage.setItem('bv_room', code);
+    localStorage.setItem('bv_id', playerId);
+    localStorage.setItem('bv_name', name);
     showScreen('lobby-screen');
     BV._watchLobby();
   },
@@ -206,9 +206,9 @@ const BV = {
 
   initGamePage() {
     const params = new URLSearchParams(window.location.search);
-    BV.roomCode = params.get('room') || sessionStorage.getItem('bv_room');
-    BV.myId = params.get('id') || sessionStorage.getItem('bv_id');
-    BV.myName = sessionStorage.getItem('bv_name');
+    BV.roomCode = params.get('room') || localStorage.getItem('bv_room');
+    BV.myId = params.get('id') || localStorage.getItem('bv_id');
+    BV.myName = localStorage.getItem('bv_name');
 
     if (!BV.roomCode || !BV.myId) { window.location.href = 'index.html'; return; }
 
@@ -802,9 +802,9 @@ const BV = {
   },
 
   _scheduleCleanup(code) {
-    setTimeout(async () => {
-      try { await db.ref(`rooms/${code}`).remove(); } catch(e) {}
-    }, 4 * 60 * 60 * 1000);
+    // Store expiry timestamp in Firebase — 30 days
+    const expiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000);
+    db.ref('rooms/' + code + '/expiresAt').set(expiresAt);
   },
 
   _playerName(gs, pid) {
@@ -814,6 +814,53 @@ const BV = {
     if (BV._cachedNames?.[pid]) return BV._cachedNames[pid];
     return pid?.substring(0,6) || '?';
   },
+};
+
+// ── Rejoin saved game ────────────────────────────────────────────
+BV._checkRejoin = async function() {
+  const code = localStorage.getItem('bv_room');
+  const id = localStorage.getItem('bv_id');
+  const name = localStorage.getItem('bv_name');
+  if (!code || !id || !name) return;
+
+  // Check if the room still exists
+  try {
+    const snap = await db.ref('rooms/' + code).once('value');
+    if (!snap.exists()) {
+      // Room gone — clear saved data
+      localStorage.removeItem('bv_room');
+      localStorage.removeItem('bv_id');
+      localStorage.removeItem('bv_name');
+      return;
+    }
+    const room = snap.val();
+
+    // Show rejoin banner
+    const banner = document.getElementById('rejoin-banner');
+    const roomEl = document.getElementById('rejoin-room');
+    const nameEl = document.getElementById('rejoin-name');
+    if (banner && roomEl && nameEl) {
+      roomEl.textContent = code;
+      nameEl.textContent = name;
+      banner.style.display = 'flex';
+    }
+  } catch(e) {
+    console.log('Rejoin check failed:', e);
+  }
+};
+
+BV._rejoin = function() {
+  const code = localStorage.getItem('bv_room');
+  const id = localStorage.getItem('bv_id');
+  window.location.href = 'game.html?room=' + code + '&id=' + id;
+};
+
+BV._clearSaved = function() {
+  localStorage.removeItem('bv_room');
+  localStorage.removeItem('bv_id');
+  localStorage.removeItem('bv_name');
+  const banner = document.getElementById('rejoin-banner');
+  if (banner) banner.style.display = 'none';
 };
 
 // ── Name cache ──────────────────────────────────────────────────
@@ -842,11 +889,13 @@ if (document.body.classList.contains('game-body')) {
   document.addEventListener('DOMContentLoaded', () => BV.initGamePage());
 } else {
   document.addEventListener('DOMContentLoaded', () => {
-    const saved = sessionStorage.getItem('bv_room');
+    const saved = localStorage.getItem('bv_room');
     if (saved) {
       BV.roomCode = saved;
-      BV.myId = sessionStorage.getItem('bv_id');
-      BV.myName = sessionStorage.getItem('bv_name');
+      BV.myId = localStorage.getItem('bv_id');
+      BV.myName = localStorage.getItem('bv_name');
+      // Show rejoin prompt if they have a saved game
+      BV._checkRejoin();
     }
   });
 }
