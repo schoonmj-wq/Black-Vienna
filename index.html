@@ -7,6 +7,47 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>
+.share-section {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.share-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 10px;
+  letter-spacing: .35em;
+  color: #4a3820;
+  text-transform: uppercase;
+}
+.qr-wrap {
+  background: #f2e8d0;
+  padding: 10px;
+  border: 1px solid #5a4020;
+  box-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+.qr-wrap canvas, .qr-wrap img {
+  display: block;
+}
+.share-url {
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  color: #a08850;
+  letter-spacing: .08em;
+}
+.share-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.share-btn {
+  font-size: 11px !important;
+  padding: 8px 16px !important;
+}
+</style>
 </head>
 <body>
 
@@ -24,6 +65,20 @@
       <button class="btn btn-ghost" onclick="showScreen('join-screen')">Join Game</button>
     </div>
     <button class="btn btn-link" onclick="showScreen('rules-screen')">How to Play</button>
+
+    <!-- SHARE SECTION -->
+    <div class="share-section">
+      <div class="share-label">Share this game</div>
+      <div class="qr-wrap">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <div class="share-url" id="share-url">black-vienna.vercel.app</div>
+      <div class="share-btns">
+        <button class="btn btn-ghost btn-xs share-btn" onclick="shareViaSMS()">📱 Text the Link</button>
+        <button class="btn btn-ghost btn-xs share-btn" onclick="copyLink()">📋 Copy Link</button>
+      </div>
+      <div id="copy-confirm" style="font-family:'Libre Baskerville',serif;font-style:italic;font-size:11px;color:#7ab860;min-height:16px;margin-top:4px"></div>
+    </div>
   </div>
 </div>
 
@@ -116,6 +171,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="config.js"></script>
 <script src="game.js"></script>
 <script>
@@ -164,6 +220,52 @@ async function startGame() {
     document.getElementById('lobby-err').textContent = e.message;
     btn.disabled = false; btn.textContent = 'Deal Cards';
   }
+}
+</script>
+<script>
+// Generate QR code on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const url = window.location.origin + window.location.pathname.replace(/\/$/, '');
+  document.getElementById('share-url').textContent = url.replace('https://', '');
+
+  // Use QRCode library
+  const wrap = document.querySelector('.qr-wrap');
+  wrap.innerHTML = '';
+  new QRCode(wrap, {
+    text: url,
+    width: 140,
+    height: 140,
+    colorDark: '#1c1108',
+    colorLight: '#f2e8d0',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+});
+
+function shareViaSMS() {
+  const url = window.location.origin + window.location.pathname.replace(/\/$/, '');
+  const msg = encodeURIComponent('Join me for Black Vienna! ' + url);
+  // sms: URI opens the native Messages app
+  window.location.href = 'sms:?body=' + msg;
+}
+
+function copyLink() {
+  const url = window.location.origin + window.location.pathname.replace(/\/$/, '');
+  navigator.clipboard.writeText(url).then(() => {
+    const el = document.getElementById('copy-confirm');
+    el.textContent = 'Link copied!';
+    setTimeout(() => el.textContent = '', 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const el = document.getElementById('copy-confirm');
+    el.textContent = 'Link copied!';
+    setTimeout(() => el.textContent = '', 2000);
+  });
 }
 </script>
 </body>
