@@ -290,7 +290,7 @@ const BV = {
       turnEl.textContent = 'Your turn — tap an investigation card below.';
     } else {
       const current = BV._playerName(gs, gs.turnOrder[gs.currentTurnIdx]);
-      turnEl.textContent = current + ''s turn to investigate.';
+      turnEl.textContent = current + "'s turn to investigate.";
     }
 
     document.getElementById('chips-value').textContent = gs.chips;
