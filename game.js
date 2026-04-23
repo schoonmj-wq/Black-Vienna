@@ -605,7 +605,21 @@ const BV = {
     }
 
     const newChips = Math.max(0, (gs.chips || 40) - count);
-    const nextTurnIdx = gs.turnOrder.indexOf(inv.targetId);
+
+    // Next turn: the questioned player goes next, but skip them if eliminated
+    const eliminated = gs.eliminated || [];
+    let nextTurnIdx = gs.turnOrder.indexOf(inv.targetId);
+    // If that player is eliminated, advance to the next non-eliminated player
+    if (eliminated.includes(inv.targetId)) {
+      const n = gs.turnOrder.length;
+      for (let i = 1; i <= n; i++) {
+        const idx = (nextTurnIdx + i) % n;
+        if (!eliminated.includes(gs.turnOrder[idx])) {
+          nextTurnIdx = idx;
+          break;
+        }
+      }
+    }
 
     const logEntry = {
       n: (gs.log?.length || 0) + 1,
