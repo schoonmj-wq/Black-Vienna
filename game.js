@@ -378,7 +378,9 @@ const BV = {
       gs.turnOrder.forEach(pid => {
         if (pid === BV.myId) return;
         const elim = gs.eliminated?.includes(pid);
-        html += '<button class="player-select-btn" onclick="BV._selectTarget(\'' + pid + '\')"'  + (elim ? ' disabled' : '') + '>' + BV._playerName(gs, pid) + '</button>';
+        // Eliminated players can still be questioned — just show a marker
+        const label = BV._playerName(gs, pid) + (elim ? ' ✗' : '');
+        html += '<button class="player-select-btn" onclick="BV._selectTarget(\'' + pid + '\')">' + label + '</button>';
       });
       html += '</div><button class="btn btn-ghost" style="font-size:11px" onclick="BV._cancelCard()">← Back</button>';
       panel.innerHTML = html;
