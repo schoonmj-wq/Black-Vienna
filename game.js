@@ -670,18 +670,22 @@ const BV = {
       if (newElim.length >= gs.turnOrder.length) {
         updates['status'] = 'ended';
       } else {
-        // Advance turn to next non-eliminated player
-        let nextTurnIdx = gs.currentTurnIdx;
-        const n = gs.turnOrder.length;
-        for (let i = 1; i <= n; i++) {
-          const idx = (gs.currentTurnIdx + i) % n;
-          if (!newElim.includes(gs.turnOrder[idx])) {
-            nextTurnIdx = idx;
-            break;
+        // Only advance the turn if it was the accuser's turn
+        const isAccusersTurn = gs.turnOrder[gs.currentTurnIdx] === BV.myId;
+        if (isAccusersTurn) {
+          const n = gs.turnOrder.length;
+          let nextTurnIdx = gs.currentTurnIdx;
+          for (let i = 1; i <= n; i++) {
+            const idx = (gs.currentTurnIdx + i) % n;
+            if (!newElim.includes(gs.turnOrder[idx])) {
+              nextTurnIdx = idx;
+              break;
+            }
           }
+          updates['currentTurnIdx'] = nextTurnIdx;
+          updates['phase'] = 'choose-card';
         }
-        updates['currentTurnIdx'] = nextTurnIdx;
-        updates['phase'] = 'choose-card';
+        // If not their turn, leave currentTurnIdx alone — current player continues
       }
     }
 
