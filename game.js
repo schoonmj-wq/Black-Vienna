@@ -372,12 +372,12 @@ const BV = {
     if (myTurn && !isEliminated && BV._pendingCard && gs.phase === 'choose-card') {
       panel.style.display = 'block';
       let html = '<div class="action-step-label">Choose who to interrogate</div>' +
-        '<div class="action-text">Card: <strong style="font-family:'Special Elite',cursive;letter-spacing:.15em;font-size:15px">' + BV._pendingCardStr + '</strong></div>' +
+        '<div class="action-text">Card: <strong style="letter-spacing:.15em;font-size:15px">' + BV._pendingCardStr + '</strong></div>' +
         '<div class="player-btn-grid">';
       gs.turnOrder.forEach(pid => {
         if (pid === BV.myId) return;
         const elim = gs.eliminated?.includes(pid);
-        html += '<button class="player-select-btn" onclick="BV._selectTarget('' + pid + '')"' + (elim ? ' disabled' : '') + '>' + BV._playerName(gs, pid) + '</button>';
+        html += '<button class="player-select-btn" onclick="BV._selectTarget(\'' + pid + '\')"'  + (elim ? ' disabled' : '') + '>' + BV._playerName(gs, pid) + '</button>';
       });
       html += '</div><button class="btn btn-ghost" style="font-size:11px" onclick="BV._cancelCard()">← Back</button>';
       panel.innerHTML = html;
@@ -395,7 +395,7 @@ const BV = {
         panel.innerHTML = '<div class="action-step-label">Investigation underway</div>' +
           '<div class="action-text"><strong>' + BV._playerName(gs, inv.askerId) + '</strong> asked ' +
           '<strong>' + BV._playerName(gs, inv.targetId) + '</strong> about ' +
-          '<strong style="font-family:'Special Elite',cursive;letter-spacing:.1em">' + inv.card + '</strong>. Waiting for answer…</div>';
+          '<strong style="letter-spacing:.1em">' + inv.card + '</strong>. Waiting for answer…</div>';
       }
       return;
     }
@@ -483,7 +483,7 @@ const BV = {
       if (e.count === 0) pips = '<span class="log-zero">0</span>';
       else for (let i = 0; i < e.count; i++) pips += '<div class="log-pip"></div>';
       return '<tr><td>' + e.n + '</td><td>' + e.asker + '</td><td>' + e.target +
-        '</td><td style="font-family:'Special Elite',cursive;letter-spacing:.1em">' + e.card +
+        '</td><td style="letter-spacing:.1em">' + e.card +
         '</td><td><div class="log-pips">' + pips + '</div></td></tr>';
     }).join('');
   },
