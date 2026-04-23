@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
-body.game-body { background: #1a1108; padding-bottom: 0; }
+body.game-body { background: #1a1108; padding-bottom: 40px; }
 
 /* MASTHEAD */
 .masthead {
@@ -17,10 +17,15 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   border-bottom: 3px solid var(--rust);
   padding: 10px 14px 8px;
   box-shadow: 0 2px 12px rgba(0,0,0,.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
 }
+.masthead-left {}
 .masthead-title {
   font-family: 'Special Elite', cursive;
-  font-size: clamp(22px, 6vw, 38px);
+  font-size: clamp(20px, 5vw, 32px);
   color: var(--rust);
   letter-spacing: .06em;
   line-height: 1;
@@ -29,46 +34,22 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   font-family: 'Courier Prime', monospace;
   font-size: 11px;
   color: var(--muted);
-  letter-spacing: .1em;
+  letter-spacing: .08em;
   margin-top: 3px;
 }
 .masthead-meta span { color: var(--ink); font-weight: 700; }
-
-/* TABS */
-.tab-bar {
+.masthead-right {
   display: flex;
-  background: #2a1f0e;
-  border-bottom: 2px solid #3a2810;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.tab-bar::-webkit-scrollbar { display: none; }
-.tab-btn {
-  font-family: 'Special Elite', cursive;
-  font-size: 12px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  padding: 10px 16px;
-  border: none;
-  background: transparent;
-  color: #7a6240;
-  cursor: pointer;
-  white-space: nowrap;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  transition: all .15s;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
+  padding-top: 4px;
 }
-.tab-btn:hover { color: var(--aged); }
-.tab-btn.active { color: var(--paper); border-bottom-color: var(--rust); background: rgba(139,37,0,.12); }
-
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
 
 /* TURN BANNER */
 .turn-banner {
   background: #110c06;
-  padding: 8px 14px;
+  padding: 9px 14px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -79,74 +60,22 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   color: var(--aged);
 }
 
-/* SECTION WRAPPER */
-.tab-section { padding: 12px 14px 8px; }
-
+/* PAGE SECTIONS */
+.page-section {
+  padding: 14px 14px 6px;
+}
 .section-eyebrow {
   font-family: 'Special Elite', cursive;
   font-size: 10px;
-  letter-spacing: .3em;
+  letter-spacing: .35em;
   color: var(--rust);
   text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-/* CASE TABLE */
-.case-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: 'Courier Prime', monospace;
-  font-size: 12px;
-  background: var(--paper);
-  border: 1px solid var(--aged);
-  margin-bottom: 10px;
-}
-.case-table th {
-  background: #d4c090;
-  font-family: 'Special Elite', cursive;
-  font-size: 10px;
-  letter-spacing: .18em;
-  color: var(--ink);
-  text-transform: uppercase;
-  padding: 5px 8px;
-  border: 1px solid var(--aged);
-  text-align: left;
-}
-.case-table td {
-  padding: 6px 8px;
-  border: 1px solid var(--aged);
-  color: var(--ink);
-  vertical-align: top;
-}
-.avail-cards {
-  font-family: 'Special Elite', cursive;
-  font-size: 14px;
-  letter-spacing: .15em;
-  line-height: 2;
-  color: var(--ink);
-}
-.avail-card-item { display: inline-block; margin-right: 10px; }
-.avail-card-replay {
-  font-size: 9px;
-  color: var(--green);
-  background: rgba(44,95,30,.12);
-  border: 1px solid rgba(44,95,30,.3);
-  padding: 1px 5px;
-  margin-left: 3px;
-  vertical-align: middle;
-  font-family: 'Courier Prime', monospace;
-  letter-spacing: .08em;
-}
-.view-note {
-  font-family: 'Libre Baskerville', serif;
-  font-style: italic;
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.6;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #2a1a08;
   margin-bottom: 12px;
 }
 
-/* HAND ROW */
+/* YOUR HAND */
 .hand-row {
   display: flex;
   flex-wrap: wrap;
@@ -154,7 +83,6 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   padding: 8px 10px;
   background: var(--paper);
   border: 1px solid var(--aged);
-  margin-bottom: 12px;
   min-height: 34px;
 }
 .hand-letter {
@@ -165,6 +93,114 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   text-align: center;
 }
 
+/* AVAILABLE INVESTIGATION CARDS — clickable */
+.inv-cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.inv-card {
+  flex: 1;
+  min-width: 80px;
+  max-width: 160px;
+  padding: 12px 10px;
+  background: #160e06;
+  border: 2px solid #2a1a08;
+  text-align: center;
+  transition: all .18s;
+  cursor: default;
+}
+.inv-card.selectable { cursor: pointer; }
+.inv-card.selectable:hover {
+  border-color: var(--sepia);
+  background: #1e1408;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(139,105,20,.25);
+}
+.inv-card.selected {
+  border-color: var(--rust);
+  background: #1c0d06;
+  box-shadow: 0 0 18px rgba(139,37,0,.35);
+}
+.inv-card.zero-chip {
+  border-color: #1a2e10;
+  background: #0f1509;
+}
+.inv-card.zero-chip.selectable:hover {
+  border-color: var(--green);
+  background: #131e09;
+}
+.inv-card.zero-chip.selected {
+  border-color: var(--green);
+  box-shadow: 0 0 14px rgba(44,95,30,.35);
+}
+.inv-card-stack {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px;
+  letter-spacing: .2em;
+  color: #3a2610;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.inv-card-stack.replay { color: #3a5a28; }
+.inv-card-letters {
+  font-family: 'Special Elite', cursive;
+  font-size: 18px;
+  color: #f0e4c8;
+  letter-spacing: .3em;
+}
+.inv-card-chips {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  min-height: 14px;
+  margin-top: 7px;
+}
+.chip-dot { width: 13px; height: 13px; background: var(--sepia); border-radius: 50%; box-shadow: 0 0 4px rgba(139,105,20,.5); }
+.chip-ghost { width: 13px; height: 13px; border-radius: 50%; border: 1px dashed #3a2410; }
+
+/* ACTION PANEL */
+.action-panel {
+  background: var(--paper);
+  background-image: repeating-linear-gradient(transparent,transparent 27px,rgba(139,105,20,.1) 27px,rgba(139,105,20,.1) 28px);
+  border-top: 1px solid var(--aged);
+  border-bottom: 1px solid var(--aged);
+  padding: 14px;
+  margin: 0 0 6px;
+}
+.action-step-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 10px;
+  letter-spacing: .3em;
+  color: var(--rust);
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.action-text {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+.player-btn-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+.player-select-btn {
+  font-family: 'Special Elite', cursive;
+  font-size: 12px;
+  letter-spacing: .08em;
+  padding: 9px 16px;
+  border: 2px solid var(--aged);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all .15s;
+  text-transform: uppercase;
+}
+.player-select-btn:hover:not(:disabled) { border-color: var(--sepia); background: #ede3c5; }
+.player-select-btn.sel { background: var(--rust); color: var(--paper); border-color: var(--rust); }
+.player-select-btn:disabled { opacity: .35; cursor: not-allowed; }
+
 /* PLAYER CARDS TABLE */
 .player-cards-table {
   width: 100%;
@@ -173,7 +209,6 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   font-size: 12px;
   background: var(--paper);
   border: 1px solid var(--aged);
-  margin-bottom: 12px;
 }
 .player-cards-table th {
   background: #d4c090;
@@ -195,124 +230,31 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
 .pcard-entry {
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin-bottom: 3px;
+  gap: 4px;
+  margin-bottom: 2px;
   font-family: 'Special Elite', cursive;
   font-size: 13px;
   color: var(--ink);
   letter-spacing: .08em;
 }
-.chip-pip {
-  width: 8px;
-  height: 8px;
-  background: var(--sepia);
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-  box-shadow: 0 0 3px rgba(139,105,20,.5);
-}
-.chip-pip-empty {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1px solid var(--aged);
-  display: inline-block;
-  flex-shrink: 0;
-}
-.pname-cell {
-  font-family: 'Special Elite', cursive;
-  font-size: 12px;
-  color: var(--ink);
-  letter-spacing: .06em;
-  white-space: nowrap;
-}
+.chip-pip { width: 8px; height: 8px; background: var(--sepia); border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.chip-pip-empty { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--aged); display: inline-block; flex-shrink: 0; }
+.pname-cell { font-family: 'Special Elite', cursive; font-size: 12px; color: var(--ink); letter-spacing: .05em; white-space: nowrap; }
 .pname-turn { color: var(--rust); }
 .pname-elim { color: var(--muted); text-decoration: line-through; }
-.no-cards-msg {
+.no-cards-msg { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 11px; color: var(--muted); }
+
+/* INVESTIGATION SHEET */
+.sheet-note {
   font-family: 'Libre Baskerville', serif;
   font-style: italic;
   font-size: 11px;
   color: var(--muted);
-}
-
-/* INVESTIGATE TAB */
-.inv-step-label {
-  font-family: 'Special Elite', cursive;
-  font-size: 10px;
-  letter-spacing: .3em;
-  color: var(--rust);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.inv-step-body {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 13px;
-  color: var(--ink);
-  line-height: 1.55;
-  margin-bottom: 14px;
-}
-.card-pick-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
-.card-pick-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  background: var(--paper);
-  border: 1px solid var(--aged);
-  cursor: pointer;
-  transition: all .15s;
-}
-.card-pick-row:hover { border-color: var(--sepia); background: #ede3c5; }
-.card-pick-row.selected { border-color: var(--rust); background: #f0dfc8; box-shadow: 0 0 10px rgba(139,37,0,.2); }
-.card-pick-row.zero { border-color: rgba(44,95,30,.35); }
-.card-pick-row.zero:hover { border-color: var(--green); background: #eaf0e4; }
-.card-pick-row.zero.selected { border-color: var(--green); background: #e4edd8; box-shadow: 0 0 10px rgba(44,95,30,.2); }
-.cpick-letters {
-  font-family: 'Special Elite', cursive;
-  font-size: 20px;
-  color: var(--ink);
-  letter-spacing: .25em;
-  min-width: 68px;
-}
-.cpick-meta { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--muted); }
-.cpick-badge {
-  font-family: 'Special Elite', cursive;
-  font-size: 9px;
-  padding: 2px 7px;
-  letter-spacing: .1em;
-  margin-left: auto;
-}
-.badge-new { background: rgba(139,37,0,.1); color: var(--rust); border: 1px solid rgba(139,37,0,.25); }
-.badge-replay { background: rgba(44,95,30,.1); color: var(--green); border: 1px solid rgba(44,95,30,.3); }
-
-.target-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-.target-btn {
-  font-family: 'Special Elite', cursive;
-  font-size: 13px;
-  letter-spacing: .1em;
-  padding: 10px 18px;
-  border: 2px solid var(--aged);
-  background: var(--paper);
-  color: var(--ink);
-  cursor: pointer;
-  transition: all .15s;
-  text-transform: uppercase;
-}
-.target-btn:hover:not(:disabled) { border-color: var(--sepia); background: #ede3c5; }
-.target-btn.selected { background: var(--rust); color: var(--paper); border-color: var(--rust); }
-.target-btn:disabled { opacity: .35; cursor: not-allowed; }
-
-/* NOTES / SHEET */
-.notes-hint {
-  font-family: 'Libre Baskerville', serif;
-  font-style: italic;
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   line-height: 1.5;
 }
 
-/* LOG TABLE */
+/* LOG */
 .log-table {
   width: 100%;
   border-collapse: collapse;
@@ -343,11 +285,11 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   position: fixed; inset: 0; background: rgba(8,4,2,.96); z-index: 100;
   display: none; align-items: center; justify-content: center; padding: 20px;
 }
-.answer-card { width: 100%; max-width: 420px; padding: 28px 24px; }
+.answer-card { width: 100%; max-width: 400px; padding: 28px 22px; }
 .answer-who { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
 .answer-card-letters {
   font-family: 'Special Elite', cursive;
-  font-size: 36px;
+  font-size: 38px;
   letter-spacing: .3em;
   color: var(--ink);
   text-align: center;
@@ -359,8 +301,8 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
 .answer-instr { font-family: 'Libre Baskerville', serif; font-size: 14px; color: var(--ink); text-align: center; line-height: 1.5; margin-bottom: 12px; }
 .chip-selector { display: flex; gap: 8px; justify-content: center; margin: 12px 0 16px; flex-wrap: wrap; }
 .chip-count-btn {
-  width: 56px; height: 56px;
-  font-family: 'Special Elite', cursive; font-size: 24px;
+  width: 58px; height: 58px;
+  font-family: 'Special Elite', cursive; font-size: 26px;
   border: 2px solid var(--aged); background: var(--paper); color: var(--muted);
   cursor: pointer; transition: all .15s;
 }
@@ -382,15 +324,18 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
 }
 .hand-letter-card::before { content:''; position:absolute; inset:3px; border:1px solid rgba(255,255,255,.18); }
 
-/* END OVERLAY */
-.end-overlay {
-  position: fixed; inset: 0; background: rgba(8,4,2,.96); z-index: 100;
+/* ACCUSATION PANEL */
+.accusation-panel {
+  position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 80;
   display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;
-  flex-direction: column;
 }
-.end-card { width: 100%; max-width: 460px; padding: 32px 28px; text-align: center; }
-
-/* ACCUSE SLOTS */
+.accuse-card { width: 100%; max-width: 480px; padding: 32px 26px; }
+.accuse-warning {
+  font-family: 'Libre Baskerville', serif; font-style: italic;
+  font-size: 13px; color: var(--blood); line-height: 1.5; margin-bottom: 14px;
+  padding: 10px; border: 1px solid rgba(192,57,43,.3); background: rgba(192,57,43,.05);
+}
+.accuse-slots { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .accuse-slot {
   width: 58px; height: 70px;
   border: 2px dashed var(--aged);
@@ -400,9 +345,17 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
 }
 .accuse-slot.filled { border-style: solid; border-color: var(--rust); background: rgba(139,37,0,.15); box-shadow: 0 0 12px rgba(139,37,0,.3); }
 
+/* END OVERLAY */
+.end-overlay {
+  position: fixed; inset: 0; background: rgba(8,4,2,.96); z-index: 100;
+  display: none; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto;
+}
+.end-card { width: 100%; max-width: 460px; padding: 32px 28px; text-align: center; margin: 20px auto; }
+
 /* utils */
-.waiting-msg { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 13px; color: var(--muted); text-align: center; padding: 16px 0; }
+.waiting-msg { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 13px; color: var(--muted); text-align: center; padding: 14px 0; }
 .err-msg { color: var(--blood); font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 12px; min-height: 18px; margin-top: 6px; }
+.divider { height: 1px; background: #2a1a08; margin: 6px 0; }
 </style>
 </head>
 <body class="game-body">
@@ -432,12 +385,32 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   </div>
 </div>
 
+<!-- ACCUSATION PANEL -->
+<div class="accusation-panel" id="accusation-panel">
+  <div class="paper-card accuse-card">
+    <div class="card-eyebrow">Black Vienna Accusation</div>
+    <h2 class="card-title">Name the Three</h2>
+    <p class="accuse-warning">Wrong accusation = eliminated from winning. Cannot be undone.</p>
+    <div class="accuse-slots">
+      <div class="accuse-slot" id="slot-0" onclick="removeAccuse(0)">?</div>
+      <div class="accuse-slot" id="slot-1" onclick="removeAccuse(1)">?</div>
+      <div class="accuse-slot" id="slot-2" onclick="removeAccuse(2)">?</div>
+    </div>
+    <div class="letter-grid" id="accuse-letter-grid"></div>
+    <div id="accuse-err" class="err-msg"></div>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn btn-danger" id="accuse-confirm-btn" onclick="BV.confirmAccusation()" disabled>Confirm Accusation</button>
+      <button class="btn btn-ghost" onclick="hideAccuse()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- END OVERLAY -->
 <div class="end-overlay" id="end-overlay">
   <div class="paper-card end-card">
     <div class="card-eyebrow">Case Closed</div>
     <h2 class="card-title">Black Vienna Unmasked</h2>
-    <div id="criminal-reveal" style="display:flex;justify-content:center;gap:12px;margin:16px 0"></div>
+    <div id="criminal-reveal" style="display:flex;justify-content:center;gap:12px;margin:16px 0;flex-wrap:wrap"></div>
     <div class="stamp" id="end-stamp">SOLVED</div>
     <p id="end-message" style="font-family:'Libre Baskerville',serif;font-style:italic;font-size:13px;color:var(--muted);margin:10px 0 14px;line-height:1.6"></p>
     <table class="scores-table" id="scores-table">
@@ -448,102 +421,76 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
   </div>
 </div>
 
-<!-- MASTHEAD -->
+<!-- ═══ MASTHEAD ═══ -->
 <div class="masthead">
-  <div class="masthead-title">BLACK VIENNA</div>
-  <div class="masthead-meta">Room <span id="header-room-code">——</span> &nbsp;·&nbsp; Agent: <span id="header-player-name">—</span> &nbsp;·&nbsp; Chips: <span id="chips-value">40</span></div>
+  <div class="masthead-left">
+    <div class="masthead-title">BLACK VIENNA</div>
+    <div class="masthead-meta">Room <span id="header-room-code">——</span> · Agent: <span id="header-player-name">—</span> · Chips: <span id="chips-value">40</span></div>
+  </div>
+  <div class="masthead-right">
+    <button class="btn btn-danger btn-xs" onclick="showAccuse()">Accuse</button>
+  </div>
 </div>
 
-<!-- TAB BAR -->
-<div class="tab-bar">
-  <button class="tab-btn active"  onclick="switchTab('view')">View</button>
-  <button class="tab-btn"         onclick="switchTab('investigate')">Investigate</button>
-  <button class="tab-btn"         onclick="switchTab('accuse')">Accuse</button>
-  <button class="tab-btn"         onclick="switchTab('notes')">Notes</button>
-  <button class="tab-btn"         onclick="switchTab('log')">Log</button>
-</div>
-
-<!-- TURN BANNER -->
+<!-- ═══ TURN BANNER ═══ -->
 <div class="turn-banner">
   <span class="pulse-dot"></span>
   <span id="turn-text">Waiting…</span>
 </div>
 
-<!-- ── VIEW ── -->
-<div class="tab-panel active" id="tab-view">
-  <div class="tab-section">
-    <div class="section-eyebrow">Case Information</div>
-    <table class="case-table">
-      <thead><tr><th>Current Turn</th><th>Available Investigation Cards</th></tr></thead>
-      <tbody><tr>
-        <td style="white-space:nowrap;font-family:'Special Elite',cursive;font-size:13px;text-align:center" id="view-current-turn">—</td>
-        <td><div class="avail-cards" id="view-avail-cards">—</div></td>
-      </tr></tbody>
-    </table>
-    <p class="view-note">· Cards with no chips can be replayed on any player.<br>· Cards with chips stay in front of the player who answered.</p>
+<!-- ═══ YOUR HAND ═══ -->
+<div class="page-section">
+  <div class="section-eyebrow">Your Hand</div>
+  <div class="hand-row" id="view-hand-row"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══ INVESTIGATION CARDS ═══ -->
+<div class="page-section">
+  <div class="section-eyebrow">Investigation Cards — <span id="inv-cards-hint" style="font-family:'Libre Baskerville',serif;font-style:italic;letter-spacing:0;text-transform:none;font-size:11px;color:var(--muted)">tap a card to investigate</span></div>
+  <div class="inv-cards-grid" id="inv-cards-grid"></div>
+</div>
+
+<!-- ═══ ACTION PANEL ═══ -->
+<div class="action-panel" id="action-panel" style="display:none"></div>
+
+<div class="divider"></div>
+
+<!-- ═══ CARDS IN PLAY ═══ -->
+<div class="page-section">
+  <div class="section-eyebrow">Cards In Play</div>
+  <table class="player-cards-table" id="player-cards-table">
+    <thead><tr><th>Agent</th><th>Cards Answered</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══ INVESTIGATION SHEET ═══ -->
+<div class="page-section">
+  <div class="section-eyebrow">My Notes</div>
+  <p class="sheet-note">Tap any cell: blank → + (has) → − (doesn't) → ○ (possible criminal)</p>
+  <div style="overflow-x:auto">
+    <table class="sheet-table" id="sheet-table"></table>
   </div>
-  <div class="tab-section">
-    <div class="section-eyebrow">Your Hand</div>
-    <div class="hand-row" id="view-hand-row"></div>
-  </div>
-  <div class="tab-section">
-    <div class="section-eyebrow">Cards In Play</div>
-    <table class="player-cards-table" id="player-cards-table">
-      <tbody></tbody>
-    </table>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-family:'Courier Prime',monospace;font-size:11px;color:var(--muted)">
+    <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--green)">+</span> Has card</span>
+    <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--blood)">−</span> Doesn't have</span>
+    <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--rust)">○</span> Maybe criminal</span>
   </div>
 </div>
 
-<!-- ── INVESTIGATE ── -->
-<div class="tab-panel" id="tab-investigate">
-  <div class="tab-section" id="investigate-content">
-    <div class="waiting-msg">Loading…</div>
-  </div>
-</div>
+<div class="divider"></div>
 
-<!-- ── ACCUSE ── -->
-<div class="tab-panel" id="tab-accuse">
-  <div class="tab-section">
-    <div class="section-eyebrow">Black Vienna Accusation</div>
-    <p style="font-family:'Libre Baskerville',serif;font-size:13px;color:var(--blood);line-height:1.5;margin-bottom:14px;padding:10px;border:1px solid rgba(192,57,43,.3);background:rgba(192,57,43,.05)">Wrong accusation = eliminated from winning. Cannot be undone.</p>
-    <div style="font-family:'Special Elite',cursive;font-size:10px;letter-spacing:.2em;color:var(--muted);margin-bottom:8px;text-transform:uppercase">Your selection</div>
-    <div style="display:flex;gap:10px;margin-bottom:16px">
-      <div class="accuse-slot" id="slot-0" onclick="removeAccuse(0)">?</div>
-      <div class="accuse-slot" id="slot-1" onclick="removeAccuse(1)">?</div>
-      <div class="accuse-slot" id="slot-2" onclick="removeAccuse(2)">?</div>
-    </div>
-    <div class="letter-grid" id="accuse-letter-grid"></div>
-    <div id="accuse-err" class="err-msg"></div>
-    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
-      <button class="btn btn-danger" id="accuse-confirm-btn" onclick="BV.confirmAccusation()" disabled>Confirm Accusation</button>
-      <button class="btn btn-ghost" onclick="clearAccuse()">Clear</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── NOTES ── -->
-<div class="tab-panel" id="tab-notes">
-  <div class="tab-section">
-    <p class="notes-hint">Tap any cell to cycle: blank → + (has card) → − (doesn't have) → ○ (possible criminal). Your own column is pre-filled.</p>
-    <div style="overflow-x:auto">
-      <table class="sheet-table" id="sheet-table"></table>
-    </div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-family:'Courier Prime',monospace;font-size:11px;color:var(--muted)">
-      <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--green)">+</span> Has card</span>
-      <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--blood)">−</span> Doesn't have</span>
-      <span><span style="font-family:'Special Elite',cursive;font-size:14px;color:var(--rust)">○</span> Maybe criminal</span>
-    </div>
-  </div>
-</div>
-
-<!-- ── LOG ── -->
-<div class="tab-panel" id="tab-log">
-  <div class="tab-section">
-    <table class="log-table">
-      <thead><tr><th>#</th><th>Asker</th><th>Target</th><th>Card</th><th>Chips</th></tr></thead>
-      <tbody id="log-tbody"></tbody>
-    </table>
-  </div>
+<!-- ═══ LOG ═══ -->
+<div class="page-section">
+  <div class="section-eyebrow">Investigation Log</div>
+  <table class="log-table">
+    <thead><tr><th>#</th><th>Asker</th><th>Target</th><th>Card</th><th>Chips</th></tr></thead>
+    <tbody id="log-tbody"></tbody>
+  </table>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -552,31 +499,29 @@ body.game-body { background: #1a1108; padding-bottom: 0; }
 <script src="game.js"></script>
 <script>
 
-function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['view','investigate','accuse','notes','log'][i] === name);
-  });
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  if (name === 'notes') BV.renderSheet();
-  if (name === 'investigate') BV.renderInvestigateTab();
-  if (name === 'accuse') buildAccuseGrid();
-}
-
 // ── ACCUSATION ──────────────────────────────────────────────────
 let accuseSelection = [];
 
-function buildAccuseGrid() {
-  const myHand = BV.myHand || [];
-  const elim = BV.state?.eliminated?.includes(BV.myId);
-  const grid = document.getElementById('accuse-letter-grid');
-  grid.innerHTML = '';
-  if (elim) {
-    grid.innerHTML = '<div class="waiting-msg">You already made an incorrect accusation and cannot accuse again.</div>';
-    document.getElementById('accuse-confirm-btn').disabled = true;
+function showAccuse() {
+  if (BV.state?.eliminated?.includes(BV.myId)) {
+    alert('You already made an incorrect accusation and cannot accuse again.');
     return;
   }
+  accuseSelection = [];
+  buildAccuseGrid();
+  document.getElementById('accusation-panel').style.display = 'flex';
+}
+
+function hideAccuse() {
+  document.getElementById('accusation-panel').style.display = 'none';
+  accuseSelection = [];
+}
+
+function buildAccuseGrid() {
+  const myHand = BV.myHand || [];
+  const grid = document.getElementById('accuse-letter-grid');
   const SUSPECTS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','Ö'];
+  grid.innerHTML = '';
   SUSPECTS.forEach(lt => {
     const isMine = myHand.includes(lt);
     const isSel = accuseSelection.includes(lt);
@@ -604,17 +549,15 @@ function removeAccuse(i) {
 
 function updateAccuseSlots() {
   for (let i = 0; i < 3; i++) {
-    const s = document.getElementById(`slot-${i}`);
+    const s = document.getElementById('slot-' + i);
     s.textContent = accuseSelection[i] || '?';
     s.classList.toggle('filled', !!accuseSelection[i]);
   }
   document.getElementById('accuse-confirm-btn').disabled = accuseSelection.length !== 3;
 }
 
-function clearAccuse() { accuseSelection = []; buildAccuseGrid(); }
-
 window.getAccuseSelection = () => accuseSelection;
-window.hideAccuse = () => {};
+window.hideAccuse = hideAccuse;
 </script>
 </body>
 </html>
