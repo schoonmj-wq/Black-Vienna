@@ -601,6 +601,8 @@ const BV = {
     const myHand = gs.hands[BV.myId] || [];
     const actualCount = inv.card.split('').filter(lt => myHand.includes(lt)).length;
     BV._debugLog('Submitting count=' + count + ' actualCount=' + actualCount + ' hand=' + myHand.join(','));
+    BV._debugLog('inv.card=' + inv.card + ' inv.stackIdx=' + inv.stackIdx + ' isZeroReplay=' + inv.isZeroReplay);
+    BV._debugLog('roomCode=' + BV.roomCode + ' myId=' + BV.myId);
 
     if (myHand.length > 0 && count !== actualCount && !BV._answerOverride) {
       const errEl = document.getElementById('answer-err');
@@ -679,10 +681,20 @@ const BV = {
 
     if (newChips <= 3) updates['status'] = 'ended';
 
-    await db.ref(`rooms/${BV.roomCode}/gameState`).update(updates);
-
-    document.getElementById('answer-overlay').style.display = 'none';
-    BV._pendingAnswer = null;
+    BV._debugLog('Writing to Firebase...');
+    try {
+      await db.ref('rooms/' + BV.roomCode + '/gameState').update(updates);
+      BV._debugLog('Firebase write OK');
+      document.getElementById('answer-overlay').style.display = 'none';
+      BV._pendingAnswer = null;
+    } catch(e) {
+      BV._debugLog('Firebase ERROR: ' + e.message);
+      const errEl = document.getElementById('answer-err');
+      if (errEl) errEl.textContent = 'Connection error — please try again. (' + e.message + ')';
+      // Re-enable submit so they can retry
+      const btn = document.getElementById('answer-confirm-btn');
+      if (btn) btn.disabled = false;
+    }
   },
 
   // ── ACCUSATION ─────────────────────────────────────────────────
