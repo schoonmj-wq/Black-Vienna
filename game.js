@@ -41,6 +41,7 @@ const BV = {
   _pendingCardStr: null,
   _pendingStackIdx: null,
   _pendingTarget: null,
+  _answerOverride: false,
 
   // ── LOBBY ──────────────────────────────────────────────────────
 
@@ -561,13 +562,28 @@ const BV = {
 
   _selectChipCount(n) {
     BV._pendingAnswer = n;
+    BV._answerOverride = false;
     document.querySelectorAll('.chip-count-btn').forEach((b, i) => b.classList.toggle('sel', i === n));
     document.getElementById('answer-confirm-btn').disabled = false;
+    // Hide override button if chip count changes
+    const overrideBtn = document.getElementById('answer-override-btn');
+    if (overrideBtn) overrideBtn.style.display = 'none';
+    const errEl = document.getElementById('answer-err');
+    if (errEl) errEl.textContent = '';
     // Show confirmation so player knows their tap registered
     const disp = document.getElementById('answer-selected-display');
     if (disp) disp.textContent = 'Selected: ' + n + ' chip' + (n === 1 ? '' : 's');
-    // Log to debug panel
     BV._debugLog('Chip selected: ' + n);
+  },
+
+  _submitOverride() {
+    BV._answerOverride = true;
+    BV._debugLog('Override confirmed by player');
+    const overrideBtn = document.getElementById('answer-override-btn');
+    if (overrideBtn) overrideBtn.style.display = 'none';
+    const errEl = document.getElementById('answer-err');
+    if (errEl) errEl.textContent = '';
+    BV.submitAnswer();
   },
 
   async submitAnswer() {
@@ -581,14 +597,22 @@ const BV = {
     const inv = BV.state.pendingInv;
     const gs = BV.state;
 
-    // Validate
+    // Soft validation — warn if answer doesn't match hand, but allow override
     const myHand = gs.hands[BV.myId] || [];
     const actualCount = inv.card.split('').filter(lt => myHand.includes(lt)).length;
-    if (count !== actualCount) {
-      document.getElementById('answer-err').textContent =
-        `That's not right — you have ${actualCount} of those letters. Please recount.`;
+    BV._debugLog('Submitting count=' + count + ' actualCount=' + actualCount + ' hand=' + myHand.join(','));
+
+    if (myHand.length > 0 && count !== actualCount && !BV._answerOverride) {
+      const errEl = document.getElementById('answer-err');
+      const overrideBtn = document.getElementById('answer-override-btn');
+      if (errEl) errEl.textContent =
+        'Your hand suggests ' + actualCount + ' match' + (actualCount === 1 ? '' : 'es') +
+        ', but you selected ' + count + '. Are you sure?';
+      if (overrideBtn) overrideBtn.style.display = 'inline-block';
       return;
     }
+    // Clear override flag for next time
+    BV._answerOverride = false;
 
     const updates = {};
     const stacks = gs.stacks.map(s => [...s]);

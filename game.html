@@ -387,6 +387,7 @@ body.game-body { background: #1a1108; padding-bottom: 40px; }
     <div id="answer-selected-display" style="text-align:center;font-family:'Special Elite',cursive;font-size:13px;letter-spacing:.2em;color:var(--sepia);min-height:20px;margin-bottom:8px"></div>
     <button class="btn btn-primary" id="answer-confirm-btn" onclick="BV.submitAnswer()" disabled style="width:100%;padding:16px;font-size:15px;touch-action:manipulation">Submit Answer</button>
     <div id="answer-err" class="err-msg" style="margin-top:8px"></div>
+    <button id="answer-override-btn" onclick="BV._submitOverride()" style="display:none;margin-top:8px;width:100%;padding:14px;font-family:'Special Elite',cursive;letter-spacing:.12em;text-transform:uppercase;font-size:13px;background:var(--blood);color:white;border:none;cursor:pointer;touch-action:manipulation">Yes, Submit Anyway</button>
     <div id="answer-debug" style="margin-top:12px;padding:8px;background:rgba(0,0,0,.15);font-family:'Courier Prime',monospace;font-size:10px;color:var(--muted);display:none"></div>
   </div>
 </div>
