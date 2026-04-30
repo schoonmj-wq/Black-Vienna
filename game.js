@@ -182,7 +182,7 @@ const BV = {
       criminals,
       hands,
       stacks,
-      topCards: [stacks[0][0], stacks[1][0], stacks[2][0]],
+      topCards: [stacks[0][0] || '', stacks[1][0] || '', stacks[2][0] || ''],
       playerCards,      // cards sitting in front of each player (1+ chips only)
       zeroChipCards: [], // cards answered with 0 chips — still playable on anyone
       chips: 40,
@@ -334,9 +334,9 @@ const BV = {
     if (!grid) return;
     grid.innerHTML = '';
 
-    // Stack top cards
+    // Stack top cards (empty string means stack is exhausted)
     (gs.topCards || []).forEach((card, si) => {
-      if (!card) return;
+      if (!card || card === '') return;
       const el = document.createElement('div');
       el.className = 'inv-card' + (canSelect ? ' selectable' : '');
       if (BV._pendingCard === 'stack-' + si) el.classList.add('selected');
@@ -630,7 +630,7 @@ const BV = {
       const si = inv.stackIdx;
       const pos = stacks[si].indexOf(inv.card);
       if (pos > -1) stacks[si].splice(pos, 1);
-      newTopCards[si] = stacks[si][0] || null;
+      newTopCards[si] = stacks[si][0] || false;
     }
 
     // Always record in playerCards for tracking — shows chip count to all players
@@ -673,7 +673,8 @@ const BV = {
     // Only update stacks/topCards when card came from a stack (not a zero-chip replay)
     if (!inv.isZeroReplay) {
       updates['stacks'] = stacks;
-      updates['topCards'] = newTopCards;
+      // Sanitize topCards — Firebase rejects null/undefined in arrays, use empty string for empty stacks
+      updates['topCards'] = newTopCards.map(c => c || '');
     }
     updates['playerCards'] = newPlayerCards;
     updates['zeroChipCards'] = newZeroChipCards;
