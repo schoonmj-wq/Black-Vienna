@@ -299,14 +299,18 @@ body.game-body { background: #1a1108; padding-bottom: 40px; }
   border: 2px solid var(--aged);
 }
 .answer-instr { font-family: 'Libre Baskerville', serif; font-size: 14px; color: var(--ink); text-align: center; line-height: 1.5; margin-bottom: 12px; }
-.chip-selector { display: flex; gap: 8px; justify-content: center; margin: 12px 0 16px; flex-wrap: wrap; }
+.chip-selector { display: flex; gap: 12px; justify-content: center; margin: 16px 0 20px; flex-wrap: wrap; }
 .chip-count-btn {
-  width: 58px; height: 58px;
-  font-family: 'Special Elite', cursive; font-size: 26px;
-  border: 2px solid var(--aged); background: var(--paper); color: var(--muted);
-  cursor: pointer; transition: all .15s;
+  width: 72px; height: 72px;
+  font-family: 'Special Elite', cursive; font-size: 32px;
+  border: 3px solid var(--aged); background: var(--paper); color: var(--muted);
+  cursor: pointer; transition: background .1s, border-color .1s;
+  /* Large touch target — no accidental scroll interference */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(139,105,20,.3);
+  user-select: none;
 }
-.chip-count-btn.sel { background: var(--sepia); color: var(--paper); border-color: var(--sepia); box-shadow: 0 0 12px rgba(139,105,20,.4); }
+.chip-count-btn.sel { background: var(--sepia); color: var(--paper); border-color: var(--sepia); box-shadow: 0 0 16px rgba(139,105,20,.5); }
 
 /* HAND OVERLAY */
 .hand-overlay {
@@ -378,10 +382,12 @@ body.game-body { background: #1a1108; padding-bottom: 40px; }
     <div class="card-eyebrow">You Are Being Questioned</div>
     <div class="answer-who" id="answer-who"></div>
     <div class="answer-card-letters" id="answer-card-letters">—</div>
-    <p class="answer-instr">How many of these letters are in your hand?</p>
+    <p class="answer-instr">Tap a number — how many of these letters are in your hand?</p>
     <div class="chip-selector" id="chip-selector"></div>
-    <div id="answer-err" class="err-msg"></div>
-    <button class="btn btn-primary" id="answer-confirm-btn" onclick="BV.submitAnswer()" disabled>Submit Answer</button>
+    <div id="answer-selected-display" style="text-align:center;font-family:'Special Elite',cursive;font-size:13px;letter-spacing:.2em;color:var(--sepia);min-height:20px;margin-bottom:8px"></div>
+    <button class="btn btn-primary" id="answer-confirm-btn" onclick="BV.submitAnswer()" disabled style="width:100%;padding:16px;font-size:15px;touch-action:manipulation">Submit Answer</button>
+    <div id="answer-err" class="err-msg" style="margin-top:8px"></div>
+    <div id="answer-debug" style="margin-top:12px;padding:8px;background:rgba(0,0,0,.15);font-family:'Courier Prime',monospace;font-size:10px;color:var(--muted);display:none"></div>
   </div>
 </div>
 

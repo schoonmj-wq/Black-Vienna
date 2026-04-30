@@ -563,10 +563,20 @@ const BV = {
     BV._pendingAnswer = n;
     document.querySelectorAll('.chip-count-btn').forEach((b, i) => b.classList.toggle('sel', i === n));
     document.getElementById('answer-confirm-btn').disabled = false;
+    // Show confirmation so player knows their tap registered
+    const disp = document.getElementById('answer-selected-display');
+    if (disp) disp.textContent = 'Selected: ' + n + ' chip' + (n === 1 ? '' : 's');
+    // Log to debug panel
+    BV._debugLog('Chip selected: ' + n);
   },
 
   async submitAnswer() {
-    if (BV._pendingAnswer === null) return;
+    BV._debugLog('Submit tapped. _pendingAnswer=' + BV._pendingAnswer);
+    if (BV._pendingAnswer === null) {
+      const errEl = document.getElementById('answer-err');
+      if (errEl) errEl.textContent = 'Please tap a number first (0, 1, 2, or 3).';
+      return;
+    }
     const count = BV._pendingAnswer;
     const inv = BV.state.pendingInv;
     const gs = BV.state;
@@ -862,6 +872,24 @@ BV._clearSaved = function() {
   const banner = document.getElementById('rejoin-banner');
   if (banner) banner.style.display = 'none';
 };
+
+// ── Debug logger ─────────────────────────────────────────────────
+BV._debugLog = function(msg) {
+  const panel = document.getElementById('answer-debug');
+  if (!panel) return;
+  const time = new Date().toLocaleTimeString();
+  panel.style.display = 'block';
+  panel.innerHTML = panel.innerHTML + time + ': ' + msg + '<br>';
+};
+
+// Global error catcher — shows JS errors on screen for mobile debugging
+window.addEventListener('error', function(e) {
+  const panel = document.getElementById('answer-debug');
+  if (panel) {
+    panel.style.display = 'block';
+    panel.innerHTML += '⚠ ' + e.message + ' (line ' + e.lineno + ')<br>';
+  }
+});
 
 // ── Name cache ──────────────────────────────────────────────────
 BV._cachedNames = {};
