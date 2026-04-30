@@ -670,8 +670,11 @@ const BV = {
 
     updates['phase'] = 'choose-card';
     updates['pendingInv'] = null;
-    updates['stacks'] = stacks;
-    updates['topCards'] = newTopCards;
+    // Only update stacks/topCards when card came from a stack (not a zero-chip replay)
+    if (!inv.isZeroReplay) {
+      updates['stacks'] = stacks;
+      updates['topCards'] = newTopCards;
+    }
     updates['playerCards'] = newPlayerCards;
     updates['zeroChipCards'] = newZeroChipCards;
     updates['invCount'] = (gs.invCount || 0) + 1;
