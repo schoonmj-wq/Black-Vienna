@@ -126,13 +126,12 @@ const BV = {
       const count = Object.keys(players).length;
       const needed = room.playerCount;
       document.getElementById('lobby-status').textContent = count >= needed
-        ? `All ${needed} players present. Host can deal.`
-        : `${count} / ${needed} players joined…`;
+        ? 'All ' + needed + ' players present — anyone can deal.'
+        : count + ' / ' + needed + ' players joined…';
 
-      if (BV.isHost) {
-        document.getElementById('lobby-host-controls').style.display = 'block';
-        document.getElementById('start-btn').disabled = count < needed;
-      }
+      // Any player can deal once everyone has joined — host may have lost the screen
+      document.getElementById('lobby-host-controls').style.display = 'block';
+      document.getElementById('start-btn').disabled = count < needed;
     });
   },
 
