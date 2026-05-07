@@ -34,6 +34,7 @@ const BV = {
   myName: null,
   myHand: null,
   isHost: false,
+  _dealingStarted: false,
   state: null,
   sheetData: null,
   _pendingAnswer: null,
@@ -125,13 +126,23 @@ const BV = {
 
       const count = Object.keys(players).length;
       const needed = room.playerCount;
-      document.getElementById('lobby-status').textContent = count >= needed
-        ? 'All ' + needed + ' players present — anyone can deal.'
-        : count + ' / ' + needed + ' players joined…';
 
-      // Any player can deal once everyone has joined — host may have lost the screen
-      document.getElementById('lobby-host-controls').style.display = 'block';
-      document.getElementById('start-btn').disabled = count < needed;
+      if (count >= needed) {
+        // Auto-deal when the last player joins — only the host triggers it
+        // to prevent multiple clients all calling dealCards simultaneously
+        if (BV.isHost && !BV._dealingStarted) {
+          BV._dealingStarted = true;
+          document.getElementById('lobby-status').textContent = 'All players present — dealing cards…';
+          BV.dealCards();
+        } else {
+          document.getElementById('lobby-status').textContent = 'All ' + needed + ' players present — dealing cards…';
+        }
+      } else {
+        document.getElementById('lobby-status').textContent = count + ' / ' + needed + ' players joined…';
+        // Keep manual deal button as fallback in case host loses connection
+        document.getElementById('lobby-host-controls').style.display = 'block';
+        document.getElementById('start-btn').disabled = true;
+      }
     });
   },
 
@@ -212,13 +223,74 @@ const BV = {
 
     if (!BV.roomCode || !BV.myId) { window.location.href = 'index.html'; return; }
 
-    document.getElementById('header-room-code').textContent = `Room ${BV.roomCode}`;
+    document.getElementById('header-room-code').textContent = 'Room ' + BV.roomCode;
     document.getElementById('header-player-name').textContent = BV.myName || '—';
 
     BV.sheetData = {};
     SUSPECTS.forEach(lt => { BV.sheetData[lt] = {}; });
 
-    db.ref(`rooms/${BV.roomCode}/gameState`).on('value', snap => {
+    // First check room status — if still lobby, cards were never dealt
+    db.ref('rooms/' + BV.roomCode).once('value', snap => {
+      if (!snap.exists()) {
+        BV._showStuckScreen('Room not found. It may have expired.');
+        return;
+      }
+      const room = snap.val();
+      BV.isHost = room.hostId === BV.myId;
+
+      if (room.status === 'lobby' || !room.gameState) {
+        // Cards never dealt — show recovery screen
+        BV._showStuckScreen(null, room);
+        return;
+      }
+
+      // Normal game — watch state
+      BV._startWatchingGame();
+    });
+  },
+
+  _showStuckScreen(errorMsg, room) {
+    const turnEl = document.getElementById('turn-text');
+    if (turnEl) turnEl.textContent = errorMsg || 'Cards have not been dealt yet.';
+
+    const panel = document.getElementById('action-panel');
+    if (!panel) return;
+    panel.style.display = 'block';
+
+    if (errorMsg) {
+      panel.innerHTML = '<div class="action-step-label">Error</div>' +
+        '<div class="action-text">' + errorMsg + '</div>' +
+        '<button class="btn btn-ghost" onclick="window.location='index.html'">Back to Lobby</button>';
+      return;
+    }
+
+    const players = room.players || {};
+    const count = Object.keys(players).length;
+    const needed = room.playerCount;
+    const ready = count >= needed;
+
+    panel.innerHTML = '<div class="action-step-label">Game Not Started</div>' +
+      '<div class="action-text">' + count + ' of ' + needed + ' players have joined.' +
+      (ready ? ' Everyone is here — cards can be dealt.' : ' Waiting for more players.') + '</div>' +
+      (ready ? '<button class="btn btn-primary" onclick="BV._forceDeal()" style="margin-top:8px">Deal Cards Now</button>' : '') +
+      '<button class="btn btn-ghost" style="margin-top:8px;margin-left:8px" onclick="window.location='index.html'">Back to Home</button>';
+  },
+
+  async _forceDeal() {
+    const panel = document.getElementById('action-panel');
+    if (panel) panel.innerHTML = '<div class="action-text">Dealing cards…</div>';
+    try {
+      await BV.dealCards();
+    } catch(e) {
+      if (panel) panel.innerHTML = '<div class="action-text" style="color:var(--blood)">Error dealing: ' + e.message + '</div>';
+    }
+  },
+
+  _startWatchingGame() {
+    BV.sheetData = BV.sheetData || {};
+    SUSPECTS.forEach(lt => { if (!BV.sheetData[lt]) BV.sheetData[lt] = {}; });
+
+    db.ref('rooms/' + BV.roomCode + '/gameState').on('value', snap => {
       if (!snap.exists()) return;
       const gs = snap.val();
       BV.state = gs;
