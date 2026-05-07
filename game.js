@@ -129,19 +129,22 @@ const BV = {
 
       if (count >= needed) {
         // Auto-deal when the last player joins — only the host triggers it
-        // to prevent multiple clients all calling dealCards simultaneously
         if (BV.isHost && !BV._dealingStarted) {
           BV._dealingStarted = true;
           document.getElementById('lobby-status').textContent = 'All players present — dealing cards…';
           BV.dealCards();
         } else {
-          document.getElementById('lobby-status').textContent = 'All ' + needed + ' players present — dealing cards…';
+          document.getElementById('lobby-status').textContent = 'All ' + needed + ' players present — dealing…';
         }
+        // Always show manual deal button as fallback for everyone
+        document.getElementById('lobby-host-controls').style.display = 'block';
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('start-btn').textContent = 'Deal Cards Manually';
       } else {
         document.getElementById('lobby-status').textContent = count + ' / ' + needed + ' players joined…';
-        // Keep manual deal button as fallback in case host loses connection
         document.getElementById('lobby-host-controls').style.display = 'block';
         document.getElementById('start-btn').disabled = true;
+        document.getElementById('start-btn').textContent = 'Waiting for players…';
       }
     });
   },
@@ -149,10 +152,14 @@ const BV = {
   // ── DEAL CARDS ─────────────────────────────────────────────────
 
   async dealCards() {
+    try {
     const snap = await db.ref(`rooms/${BV.roomCode}`).once('value');
+    if (!snap.exists()) throw new Error('Room not found');
     const room = snap.val();
     const players = room.players;
     const n = room.playerCount;
+    const actualCount = Object.keys(players).length;
+    if (actualCount < n) throw new Error('Only ' + actualCount + ' of ' + n + ' players have joined');
     const playerIds = Object.keys(players).sort((a,b) => players[a].order - players[b].order);
 
     const deck = BV._shuffle([...SUSPECTS]);
@@ -211,6 +218,15 @@ const BV = {
 
     await db.ref(`rooms/${BV.roomCode}/gameState`).set(gameState);
     await db.ref(`rooms/${BV.roomCode}/status`).set('playing');
+    } catch(e) {
+      console.error('dealCards error:', e);
+      BV._dealingStarted = false;
+      const statusEl = document.getElementById('lobby-status');
+      if (statusEl) statusEl.textContent = 'Error dealing cards: ' + e.message;
+      const btn = document.getElementById('start-btn');
+      if (btn) { btn.disabled = false; btn.textContent = 'Try Again'; }
+      document.getElementById('lobby-host-controls').style.display = 'block';
+    }
   },
 
   // ── GAME PAGE INIT ─────────────────────────────────────────────
