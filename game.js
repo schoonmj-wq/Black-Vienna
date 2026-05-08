@@ -276,7 +276,7 @@ const BV = {
     if (errorMsg) {
       panel.innerHTML = '<div class="action-step-label">Error</div>' +
         '<div class="action-text">' + errorMsg + '</div>' +
-        '<button class="btn btn-ghost" onclick="window.location='index.html'">Back to Lobby</button>';
+        '<button class="btn btn-ghost" onclick="window.location=\"index.html\"">Back to Lobby</button>';
       return;
     }
 
@@ -289,7 +289,7 @@ const BV = {
       '<div class="action-text">' + count + ' of ' + needed + ' players have joined.' +
       (ready ? ' Everyone is here — cards can be dealt.' : ' Waiting for more players.') + '</div>' +
       (ready ? '<button class="btn btn-primary" onclick="BV._forceDeal()" style="margin-top:8px">Deal Cards Now</button>' : '') +
-      '<button class="btn btn-ghost" style="margin-top:8px;margin-left:8px" onclick="window.location='index.html'">Back to Home</button>';
+      '<button class="btn btn-ghost" style="margin-top:8px;margin-left:8px" onclick="window.location=\"index.html\"">Back to Home</button>';
   },
 
   async _forceDeal() {
