@@ -43,6 +43,8 @@ const BV = {
   _pendingStackIdx: null,
   _pendingTarget: null,
   _answerOverride: false,
+  _notificationsEnabled: false,
+  _lastNotifiedTurn: null,  // prevent duplicate notifications
 
   // ── LOBBY ──────────────────────────────────────────────────────
 
@@ -303,6 +305,8 @@ const BV = {
   },
 
   _startWatchingGame() {
+    BV.initNotifications();
+    BV._updateNotifBtn();
     BV.sheetData = BV.sheetData || {};
     SUSPECTS.forEach(lt => { if (!BV.sheetData[lt]) BV.sheetData[lt] = {}; });
 
@@ -338,6 +342,8 @@ const BV = {
       document.getElementById('answer-overlay').style.display = 'none';
     }
     BV._renderGame(gs);
+    // Fire notification if relevant
+    BV._checkAndNotify(gs);
   },
 
   // ── HAND REVEAL ────────────────────────────────────────────────
@@ -368,8 +374,15 @@ const BV = {
     const isEliminated = gs.eliminated?.includes(BV.myId);
 
     // Turn banner
+    const isFinalRound = gs.status === 'final-round';
     const turnEl = document.getElementById('turn-text');
-    if (gs.phase === 'waiting-answer') {
+    if (isFinalRound) {
+      const winner = BV._playerName(gs, gs.winnerId);
+      const myAccused = gs.accusations?.[BV.myId];
+      turnEl.textContent = myAccused
+        ? 'You have made your final accusation. Waiting for others…'
+        : winner + ' solved it! Make your final accusation now.';
+    } else if (gs.phase === 'waiting-answer') {
       const target = BV._playerName(gs, gs.pendingInv?.targetId);
       const asker = BV._playerName(gs, gs.pendingInv?.askerId);
       turnEl.textContent = gs.pendingInv?.targetId === BV.myId
@@ -396,8 +409,10 @@ const BV = {
     }
 
     BV._renderHand(gs);
-    BV._renderInvCards(gs, myTurn && !isEliminated && gs.phase === 'choose-card');
-    BV._renderActionPanel(gs, myTurn, isEliminated);
+    // No new investigations during final round
+    const canInvestigate = myTurn && !isEliminated && gs.phase === 'choose-card' && !isFinalRound;
+    BV._renderInvCards(gs, canInvestigate);
+    BV._renderActionPanel(gs, myTurn, isEliminated, isFinalRound);
     BV._renderPlayerCardsTable(gs);
     BV._renderSheet();
     BV._renderLog(gs);
@@ -453,7 +468,7 @@ const BV = {
 
   // ── ACTION PANEL ───────────────────────────────────────────────
 
-  _renderActionPanel(gs, myTurn, isEliminated) {
+  _renderActionPanel(gs, myTurn, isEliminated, isFinalRound) {
     const panel = document.getElementById('action-panel');
     if (!panel) return;
 
@@ -487,6 +502,21 @@ const BV = {
           '<div class="action-text"><strong>' + BV._playerName(gs, inv.askerId) + '</strong> asked ' +
           '<strong>' + BV._playerName(gs, inv.targetId) + '</strong> about ' +
           '<strong style="letter-spacing:.1em">' + inv.card + '</strong>. Waiting for answer…</div>';
+      }
+      return;
+    }
+
+    // Final round — prompt unaccused players to accuse
+    if (isFinalRound) {
+      const myAccused = gs.accusations?.[BV.myId];
+      if (!myAccused) {
+        panel.style.display = 'block';
+        panel.innerHTML = '<div class="action-step-label">Final Round</div>' +
+          '<div class="action-text">The case has been cracked! Tap <strong>Accuse</strong> in the top right to make your final guess and potentially tie for the win.</div>';
+      } else {
+        panel.style.display = 'block';
+        panel.innerHTML = '<div class="action-step-label">Final Round</div>' +
+          '<div class="action-text">You have made your accusation. Waiting for other players…</div>';
       }
       return;
     }
@@ -628,23 +658,39 @@ const BV = {
   _showAnswerPrompt(inv) {
     document.getElementById('answer-overlay').style.display = 'flex';
     const who = document.getElementById('answer-who');
-    if (who) who.textContent = `${BV._playerName(BV.state, inv.askerId)} asks you about:`;
+    if (who) who.textContent = BV._playerName(BV.state, inv.askerId) + ' asks you about:';
     const lettersEl = document.getElementById('answer-card-letters');
     if (lettersEl) lettersEl.textContent = inv.card;
 
+    // Auto-calculate answer from hand
+    const myHand = BV.state.hands?.[BV.myId] || [];
+    const autoCount = inv.card.split('').filter(lt => myHand.includes(lt)).length;
+    BV._debugLog('Auto-answer: card=' + inv.card + ' hand=' + myHand.join(',') + ' count=' + autoCount);
+
+    // Show what will be submitted so player can see before it fires
+    const disp = document.getElementById('answer-selected-display');
+    if (disp) disp.textContent = 'Auto-answering: ' + autoCount + ' chip' + (autoCount === 1 ? '' : 's');
+
+    // Highlight the correct button
     const sel = document.getElementById('chip-selector');
     sel.innerHTML = '';
-    BV._pendingAnswer = null;
-
     for (let i = 0; i <= 3; i++) {
       const btn = document.createElement('button');
-      btn.className = 'chip-count-btn';
+      btn.className = 'chip-count-btn' + (i === autoCount ? ' sel' : '');
       btn.textContent = i;
-      btn.onclick = () => BV._selectChipCount(i);
+      btn.disabled = true; // display only
       sel.appendChild(btn);
     }
-    document.getElementById('answer-confirm-btn').disabled = true;
+
     document.getElementById('answer-err').textContent = '';
+    document.getElementById('answer-confirm-btn').style.display = 'none';
+    const overrideBtn = document.getElementById('answer-override-btn');
+    if (overrideBtn) overrideBtn.style.display = 'none';
+
+    // Auto-submit after a short delay so player can see the answer
+    BV._pendingAnswer = autoCount;
+    BV._answerOverride = true; // bypass validation
+    setTimeout(() => BV.submitAnswer(), 1500);
   },
 
   _selectChipCount(n) {
@@ -798,18 +844,43 @@ const BV = {
     const updates = {};
     updates[`accusations/${BV.myId}`] = { letters: sel, correct, at: Date.now() };
 
+    const gs = BV.state;
+
     if (correct) {
-      updates['status'] = 'ended';
-      updates['winnerId'] = BV.myId;
+      // First correct answer — enter final round so others can tie
+      const alreadyWon = gs.winnerId;
+      if (alreadyWon) {
+        // Second+ correct answer — just record it, check if everyone has accused
+        updates['accusations/' + BV.myId] = { letters: sel, correct, at: Date.now() };
+        const allAccused = gs.turnOrder.every(pid =>
+          gs.accusations?.[pid] || pid === BV.myId
+        );
+        if (allAccused) updates['status'] = 'ended';
+      } else {
+        // First winner — start final round
+        updates['winnerId'] = BV.myId;
+        updates['status'] = 'final-round';
+        updates['phase'] = 'final-round';
+        // Check if everyone else has already accused — if so end immediately
+        const othersAllAccused = gs.turnOrder
+          .filter(pid => pid !== BV.myId)
+          .every(pid => gs.accusations?.[pid]);
+        if (othersAllAccused) updates['status'] = 'ended';
+      }
     } else {
-      const gs = BV.state;
       const newElim = [...(gs.eliminated || []), BV.myId];
       updates['eliminated'] = newElim;
 
-      if (newElim.length >= gs.turnOrder.length) {
+      // Check if game should end
+      const allAccused = gs.turnOrder.every(pid =>
+        newElim.includes(pid) || gs.accusations?.[pid] || pid === BV.myId
+      );
+      if (gs.status === 'final-round' && allAccused) {
         updates['status'] = 'ended';
-      } else {
-        // Only advance the turn if it was the accuser's turn
+      } else if (newElim.length >= gs.turnOrder.length) {
+        updates['status'] = 'ended';
+      } else if (gs.status !== 'final-round') {
+        // Normal play — advance turn if it was accuser's turn
         const isAccusersTurn = gs.turnOrder[gs.currentTurnIdx] === BV.myId;
         if (isAccusersTurn) {
           const n = gs.turnOrder.length;
@@ -824,7 +895,6 @@ const BV = {
           updates['currentTurnIdx'] = nextTurnIdx;
           updates['phase'] = 'choose-card';
         }
-        // If not their turn, leave currentTurnIdx alone — current player continues
       }
     }
 
@@ -849,11 +919,19 @@ const BV = {
     const chipsLeft = gs.chips || 0;
     const winner = gs.winnerId;
     const stamp = document.getElementById('end-stamp');
+    const correctAccusers = (gs.turnOrder || []).filter(pid => gs.accusations?.[pid]?.correct);
+
     if (winner) {
       stamp.className = 'stamp win';
       stamp.textContent = 'CASE CLOSED';
-      document.getElementById('end-message').textContent =
-        `${BV._playerName(gs, winner)} exposed Black Vienna with ${chipsLeft} chips remaining.`;
+      if (correctAccusers.length > 1) {
+        const names = correctAccusers.map(pid => BV._playerName(gs, pid)).join(' & ');
+        document.getElementById('end-message').textContent =
+          names + ' all cracked the case! ' + chipsLeft + ' chips remaining.';
+      } else {
+        document.getElementById('end-message').textContent =
+          BV._playerName(gs, winner) + ' exposed Black Vienna with ' + chipsLeft + ' chips remaining.';
+      }
     } else {
       stamp.className = 'stamp fail';
       stamp.textContent = 'UNSOLVED';
@@ -865,19 +943,19 @@ const BV = {
     tbody.innerHTML = '';
     (gs.turnOrder || []).forEach(pid => {
       const acc = gs.accusations?.[pid];
-      let accText = '—', score = '0', cls = 'score-zero';
+      let accText = '\u2014', score = '0', cls = 'score-zero';
+      const isWinner = pid === winner;
+      const isTied = acc?.correct && !isWinner;
       if (acc) {
-        accText = acc.letters.join(', ') + (acc.correct ? ' ✓' : ' ✗');
-        if (acc.correct && pid === winner) { score = (chipsLeft * 3).toString(); cls = 'score-win'; }
-        else if (acc.correct) { score = chipsLeft.toString(); cls = 'score-win'; }
+        accText = acc.letters.join(', ') + (acc.correct ? ' \u2713' : ' \u2717');
+        if (isWinner) { score = (chipsLeft * 3).toString(); cls = 'score-win'; }
+        else if (isTied) { score = chipsLeft.toString(); cls = 'score-win'; }
       }
-      tbody.innerHTML += `<tr>
-        <td>${BV._playerName(gs, pid)}${pid === winner ? ' ★' : ''}</td>
-        <td>${accText}</td>
-        <td class="${cls}">${score}</td>
-      </tr>`;
+      const star = isWinner ? ' \u2605' : isTied ? ' \u2606' : '';
+      tbody.innerHTML += '<tr><td>' + BV._playerName(gs, pid) + star + '</td><td>' + accText + '</td><td class="' + cls + '">' + score + '</td></tr>';
     });
   },
+
 
   // ── INVESTIGATION SHEET ────────────────────────────────────────
 
@@ -951,6 +1029,112 @@ const BV = {
     if (BV._cachedNames?.[pid]) return BV._cachedNames[pid];
     return pid?.substring(0,6) || '?';
   },
+};
+
+// ── Push Notifications ───────────────────────────────────────────
+
+BV.initNotifications = async function() {
+  // Register service worker
+  if (!('serviceWorker' in navigator) || !('Notification' in window)) {
+    console.log('Push notifications not supported');
+    return;
+  }
+  try {
+    await navigator.serviceWorker.register('/sw.js');
+    console.log('Service worker registered');
+
+    // Restore saved preference
+    const saved = localStorage.getItem('bv_notifications');
+    if (saved === 'granted') {
+      BV._notificationsEnabled = Notification.permission === 'granted';
+    }
+  } catch(e) {
+    console.log('Service worker registration failed:', e);
+  }
+};
+
+BV.requestNotifications = async function() {
+  if (!('Notification' in window)) {
+    alert('Your browser does not support notifications.');
+    return false;
+  }
+  if (Notification.permission === 'granted') {
+    BV._notificationsEnabled = true;
+    localStorage.setItem('bv_notifications', 'granted');
+    BV._updateNotifBtn();
+    return true;
+  }
+  if (Notification.permission === 'denied') {
+    alert('Notifications are blocked. Please enable them in your browser settings for this site.');
+    return false;
+  }
+  const permission = await Notification.requestPermission();
+  BV._notificationsEnabled = permission === 'granted';
+  if (BV._notificationsEnabled) {
+    localStorage.setItem('bv_notifications', 'granted');
+    // Send a test notification
+    BV._notify('Black Vienna', "Notifications enabled! You'll be alerted when it's your turn.");
+  }
+  BV._updateNotifBtn();
+  return BV._notificationsEnabled;
+};
+
+BV._notify = function(title, body) {
+  if (!BV._notificationsEnabled) return;
+  if (Notification.permission !== 'granted') return;
+  // Don't notify if page is visible and focused
+  if (document.visibilityState === 'visible') return;
+
+  navigator.serviceWorker.ready.then(reg => {
+    reg.showNotification(title, {
+      body,
+      tag: 'black-vienna-turn',
+      renotify: true,
+      icon: '/icon.png',
+      data: { url: window.location.href }
+    });
+  }).catch(() => {
+    // Fallback to basic notification
+    new Notification(title, { body });
+  });
+};
+
+BV._updateNotifBtn = function() {
+  const btn = document.getElementById('notif-toggle-btn');
+  if (!btn) return;
+  if (BV._notificationsEnabled && Notification.permission === 'granted') {
+    btn.textContent = '🔔';
+    btn.title = 'Notifications on — tap to learn more';
+    btn.style.opacity = '1';
+  } else {
+    btn.textContent = '🔕';
+    btn.title = 'Tap to enable turn notifications';
+    btn.style.opacity = '0.6';
+  }
+};
+
+BV._checkAndNotify = function(gs) {
+  if (!gs) return;
+  const myTurn = gs.turnOrder?.[gs.currentTurnIdx] === BV.myId;
+  const isFinalRound = gs.status === 'final-round';
+  const myAccused = gs.accusations?.[BV.myId];
+
+  // Build a unique key for this notification moment
+  const notifKey = gs.invCount + '-' + gs.currentTurnIdx + '-' + gs.status;
+  if (notifKey === BV._lastNotifiedTurn) return; // already notified for this state
+
+  if (myTurn && gs.phase === 'choose-card' && !isFinalRound) {
+    BV._lastNotifiedTurn = notifKey;
+    BV._notify('Black Vienna — Your Turn', "It's your turn to investigate in room " + BV.roomCode + "!");
+  } else if (gs.phase === 'waiting-answer' && gs.pendingInv?.targetId === BV.myId) {
+    BV._lastNotifiedTurn = notifKey;
+    const asker = BV._playerName(gs, gs.pendingInv.askerId);
+    BV._notify('Black Vienna — Answer Needed', asker + ' is questioning you in room ' + BV.roomCode + '!');
+  } else if (isFinalRound && !myAccused) {
+    BV._lastNotifiedTurn = notifKey;
+    const winner = BV._playerName(gs, gs.winnerId);
+    BV._notify('Black Vienna — Final Round!', winner + ' cracked the case! Make your final accusation.');
+  }
 };
 
 // ── Rejoin saved game ────────────────────────────────────────────
